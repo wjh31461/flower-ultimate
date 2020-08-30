@@ -1,0 +1,287 @@
+html {
+	font: normal normal 15px '微软雅黑','Microsoft YaHei';
+	color: #666;
+}
+body,ul,ol,dl,p,h1,h2,h3 {
+	margin: 0;
+	padding: 0;
+}
+ul,ol {
+	list-style: none;
+}
+a {
+	color: #666;
+	text-decoration: none;
+}
+div {
+	box-sizing: border-box;
+}
+.wrapper {
+	width: 1200px;
+	height: 100%;
+	margin: 0 auto;
+}
+
+
+.top-nav {
+	height: 35px;
+	min-width: 1200px;
+	background-color: #e3e4e5;
+	font-size: 12px;
+}
+.top-nav ul {
+	float: right;
+}
+.top-nav ul > * {
+	float: left;
+	margin-right: 50px;
+	line-height: 35px;
+}
+.top-nav ul > li *:hover {
+	color: #f76372;
+	cursor: pointer;
+}
+.top-nav ul > li:first-child span {
+	cursor: pointer;
+	font-size: 12px;
+}
+.top-nav ul > li:nth-child(2) a {
+	color: red;
+}
+.top-nav ul > li:nth-child(4) i.fa-shopping-cart {
+	margin-right: 5px;
+}
+.top-nav ul > li:nth-child(4) i.fa-caret-down {
+	margin-left: 5px;
+}
+.top-nav ul > li:nth-child(5) {
+	margin: 0;
+}
+.top-nav ul > li:nth-child(5) a {
+	color: #fc859d;
+}
+
+
+
+.header {
+	min-width: 1200px;
+	height: 130px;
+	margin-bottom: 15px;
+}
+.header-wrapper > div:first-child, 
+.header-wrapper > div:nth-child(2) {
+	float: left;
+}
+.header-wrapper > div:nth-child(3) {
+	float: right;
+}
+.header-wrapper .logo {
+	width: 500px;
+	margin-top: 15px;
+}
+.header-wrapper .logo > a > img:first-child {
+	height: 100px;
+}
+.header-wrapper .search {
+	margin-top: 35px;
+}
+.search .search-top input.el-input__inner {
+	border-radius: 20px;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	border-right: 0;
+}
+.search .search-top input.el-input__inner:focus {
+	border: 1.5px solid #f76372;
+	border-right: 0;
+}
+.search-top span > i {
+	color: #f76372;
+}
+.search-top .el-input-group__append {
+	border: 1.5px solid #f76372;
+	border-radius: 20px;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	border-left: 0;
+	background-color: #f76372;
+	color: #fff;
+}
+.search .search-bottom {
+	margin-top: 7px;
+	font-size: 13px;
+}
+.search .search-bottom > * {
+	color: #999;
+}
+.header-wrapper .service {
+	margin-top: 40px;
+}
+.service .fa-phone,
+.service a .fa-commenting {
+	color: #f76372;
+	font-size: 25px;
+	position: relative;
+	margin-right: 7px;
+}
+.service .fa-phone {
+	top: .2em;
+}
+.service a .fa-commenting {
+	top: .1em;
+}
+.service a {
+	margin-left: 20px;
+	padding-left: 20px;
+	border-left: 1px solid #d9d9d9;
+}
+
+
+
+.footer {
+	min-width: 1200px;
+	padding-top: 50px;
+}
+.footer .footer-help a:hover {
+	color: #f76372;
+}
+.footer .footer-help > * {
+	float: left;
+	width: 33.3%;
+	padding-top: 1em;
+}
+.footer-help > * > div:first-child {
+	text-align: center;
+	margin-bottom: 1em;
+}
+.footer-help-left .customer-server {
+	width: 180px;
+	margin: 0 auto;
+}
+.customer-server > * {
+	margin-bottom: .3em;
+}
+.customer-server > * > a:last-child {
+	float: right;
+}
+.footer-help .footer-help-center {
+	border-left: 1px solid rgba(247,99,114,0.3);
+	border-right: 1px solid rgba(247,99,114,0.3);
+	padding-bottom: 1.5em;
+}
+.footer-help-center .question {
+	width: 150px;
+	margin: 0 auto;
+}
+.footer-help-center .question > * {
+	display: block;
+	margin-bottom: .3em;
+}
+.footer-help-right .callus {
+	width: 240px;
+	margin: 0 auto;
+}
+.callus > * {
+	margin-bottom: .3em;
+}
+.footer .footer-help::after {
+	content: '';
+	display: block;
+	clear: both;
+}
+.footer .footer-foot {
+	padding-top: 30px;
+}
+.footer-foot .footer-foot-top {
+	border-bottom: 1px solid rgba(247,99,114,0.3);
+	text-align: center;
+	padding: 0 15px;
+}
+.footer-foot-top > * {
+	float: left;
+}
+.footer-foot-top > * > span {
+	font-size: 18px;
+}
+.footer-foot-top > div:first-child {
+	position: relative;
+	top: 5px;
+}
+.footer-foot-top > div:first-child,
+.footer-foot-top > div:nth-child(2),
+.footer-foot-top > div:nth-child(3),
+.footer-foot-top > div:nth-child(4) {
+	margin-right: 102px;
+}
+.footer-foot-top > div:first-child img {
+	width: 60px;
+}
+.footer-foot-top > div:first-child span {
+	position: relative;
+	bottom: 16px;
+	margin-left: 17px;
+}
+.footer-foot-top > div:nth-child(2) span {
+	position: relative;
+	bottom: 28px;
+	margin-left: 10px;
+}
+.footer-foot-top > div:nth-child(3) span {
+	position: relative;
+	bottom: 28px;
+	margin-left: 10px;
+}
+.footer-foot-top > div:nth-child(4) span {
+	position: relative;
+	bottom: 28px;
+}
+.footer-foot-top > div:nth-child(5) img {
+	width: 56px;
+}
+.footer-foot-top > div:nth-child(5) span {
+	position: relative;
+	bottom: 20px;
+	margin-left: 10px;
+}
+.footer-foot-top::after {
+	content: '';
+	display: block;
+	clear: both;
+}
+.footer-foot-bottom {
+	margin-top: 1em;
+	text-align: center;
+}
+
+
+
+.loginDialog .el-dialog,
+.usermsgDialog .el-dialog,
+.modifyDialog .el-dialog {
+	width: 460px;
+	/*height: 300px;*/
+	border-radius: 10px;
+}
+.loginDialog .el-input input:focus {
+	border: 1.5px solid #f76372;
+}
+.loginDialog .el-dialog__footer button:last-child,
+.usermsgDialog .el-dialog__footer button:last-child,
+.modifyDialog .el-dialog__footer button:last-child {
+	background-color: #f76372;
+	color: #fff;
+	border-color: #f76372;
+}
+.loginDialog .el-dialog__footer button:last-child:hover,
+.usermsgDialog .el-dialog__footer button:last-child:hover,
+.modifyDialog .el-dialog__footer button:last-child:hover {
+	background-color: rgba(247,99,114,0.8);
+	border-color: rgba(247,99,114,0.8);
+}
+
+
+
+
+.usermsgDialog .el-form > .el-form-item {
+	margin-bottom: 0;
+}
