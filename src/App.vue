@@ -6,7 +6,7 @@
 					<li>
 						<el-dropdown @command="handleCommand" trigger='click'>
 							<span @click='login($event)' class="el-dropdown-link">
-								{{('欢迎，' + userMsg.username) || '你好，请登录'}}
+								{{userMsg.username ? ('欢迎，' + userMsg.username) : '你好，请登录'}}
 							</span>
 							<el-dropdown-menu slot="dropdown" v-if='dropdownMenu'>
 								<el-dropdown-item command='showMsg'>个人信息</el-dropdown-item>
@@ -139,11 +139,11 @@
 		</div>
 		
 		<!-- 登录模态框 -->
-		<el-dialog class='loginDialog' title="登录" :visible.sync="loginForm.visible" center>
+		<el-dialog class='loginDialog' title="登录" :visible.sync="loginForm.visible" center @open='handleLoginOpen' @close='handleLoginClose'>
 			<el-tabs v-model="active" @tab-click="handleTabClick">
-		    <el-tab-pane label="手机验证码登录" name="0">
-		    	<el-form :model="loginForm.form" :rules='loginRules' ref='loginDialog1' label-position='left'>
-		    		<el-form-item label="手机号" label-width="70px" prop='telephone'>
+				<el-tab-pane label="手机验证码登录" name="0">
+					<el-form :model="loginForm.form" :rules='loginRules' ref='loginDialog1' label-position='left'>
+						<el-form-item label="手机号" label-width="70px" prop='telephone'>
 							<el-input v-model="loginForm.form.telephone" :maxlength='11'></el-input>
 						</el-form-item>
 						<el-form-item label="验证码" label-width="70px" prop='securityCode'>
@@ -153,82 +153,152 @@
 								<span v-else>{{loginForm.countdown}}s后可获取</span>
 							</el-button>
 						</el-form-item>
-		    	</el-form>
-		    </el-tab-pane>
-		    
-		    <el-tab-pane label="账号密码登录" name="1">
-		    	<el-form :model="loginForm.form" :rules='loginRules' ref='loginDialog2' label-position='left'>
-		    		<el-form-item label="用户名" label-width="70px" prop='username'>
+					</el-form>
+				</el-tab-pane>
+				
+				<el-tab-pane label="账号密码登录" name="1">
+					<el-form :model="loginForm.form" :rules='loginRules' ref='loginDialog2' label-position='left'>
+						<el-form-item label="用户名" label-width="70px" prop='username'>
 							<el-input v-model="loginForm.form.username" auto-complete="off"></el-input>
 						</el-form-item>
 						<el-form-item label="密码" label-width="70px" prop='password'>
 							<el-input v-model="loginForm.form.password" auto-complete="off" show-password></el-input>
 						</el-form-item>
-		    	</el-form>
-		    </el-tab-pane>
-		  </el-tabs>
+					</el-form>
+				</el-tab-pane>
+			</el-tabs>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click="closeLoginForm()">取 消</el-button>
 				<el-button @click="toLogin()">确 定</el-button>
 			</div>
 		</el-dialog>
 
-		<!-- 个人信息模态框 -->
-		<el-dialog class='usermsgDialog' title="个人信息" :visible.sync="usermsgVisible" center>
-			<!-- 修改信息模态框 -->
+		<!-- 个人信息 -->
+		<el-dialog class='usermsgDialog' :title="editMsg.isEdit ? '修改信息' : '个人信息'" :visible.sync="editMsg.visible" width='70%' center>
+			<!-- 查看信息 -->
+			<el-form v-if='!editMsg.isEdit' label-position='left'>
+				<el-form-item label="用户名" label-width="100px">{{userMsg.username}}</el-form-item>
+				<el-form-item label="昵称" label-width="100px">{{userMsg.aliase}}</el-form-item>
+				<el-form-item label="真实姓名" label-width="100px">{{userMsg.nickname}}</el-form-item>
+				<el-form-item label="手机号" label-width="100px">{{userMsg.telephone}}</el-form-item>
+				<el-form-item label="收货地址" label-width="100px">
+					<div v-if='userMsg.address' v-for='item in userMsg.address' class='addressItem'>
+						{{item.name}} {{item.telephone}}
+						<div>
+							{{item.addressLabel.join('')}} {{item.addressDetail}}
+						</div>
+					</div>
+				</el-form-item>
+			</el-form>
+
+			<!-- 修改信息 -->
+			<el-form v-if='editMsg.isEdit' ref='editDialog' :model='editMsg.form' :rules='editRules' label-position='left'>
+				<el-form-item label="用户名" label-width="100px">{{editMsg.form.username}}</el-form-item>
+				<el-form-item label="昵称" label-width="100px" prop='aliase'>
+					<el-input v-model="editMsg.form.aliase" :maxlength='8' placeholder="请输入昵称"></el-input>
+				</el-form-item>
+				<el-form-item label="密码" label-width="100px" prop='password'>
+					<el-input v-model="editMsg.form.password" :minlength='6' :maxlength='16' placeholder="请输入新密码" auto-complete="off" show-password></el-input>
+				</el-form-item>
+				<el-form-item label="姓名" label-width="100px" prop='nickname'>
+					<el-input v-model="editMsg.form.nickname" :minlength='2' :maxlength='4' placeholder="请输入姓名"></el-input>
+				</el-form-item>
+				<el-form-item label="手机号" label-width="100px">
+					{{editMsg.form.telephone}}
+					<el-button @click="toChangePhone()">点击更换手机号</el-button>
+				</el-form-item>
+				<el-form-item label="收货地址" label-width="100px" prop='address'>
+					<div v-if='editMsg.form.address' v-for='item in editMsg.form.address' class='addressItem'>
+						{{item.name}} {{item.telephone}}
+						<div>
+							{{item.addressLabel.join('')}} {{item.addressDetail}}
+						</div>
+					</div>
+					<el-button v-if='editMsg.form.address ? editMsg.form.address.length < 5 : true' @click="addAddress()">新增收货地址</el-button>
+				</el-form-item>
+			</el-form>
+
+			<!-- 修改手机号 -->
 			<el-dialog
 				width="30%"
-				title="修改信息"
-				:visible.sync="modifymsg.visible"
-				append-to-body
-				class='modifyDialog'>
-				<el-form :model="modifymsg.form" ref='userMsgForm' :rules='modify_usermsg' status-icon label-position='left'>
-					<el-form-item label="用户名" label-width="90px">
-						{{modifymsg.form.username}}
+				title="修改手机号"
+				:visible.sync="phoneMsg.visible"
+				append-to-body>
+				<el-form :model="phoneMsg.form" :rules='loginRules' ref='phoneDialog' label-position='left'>
+					<el-form-item label="手机号" label-width="70px" prop='telephone'>
+						<el-input v-model="phoneMsg.form.telephone" :maxlength='11'></el-input>
 					</el-form-item>
-					<el-form-item label="新密码" label-width="90px" prop='password'>
-						<el-input v-model="modifymsg.form.password" auto-complete="off" show-password></el-input>
-					</el-form-item>
-					<el-form-item label="真实姓名" label-width="90px" prop='nickname'>
-						<el-input v-model="modifymsg.form.nickname" auto-complete="off"></el-input>
-					</el-form-item>
-					<el-form-item label="联系电话" label-width="90px" prop='telephone'>
-						<el-input v-model="modifymsg.form.telephone" auto-complete="off"></el-input>
-					</el-form-item>
-					<el-form-item label="收货地址" label-width="90px" prop='address'>
-						<el-input v-model="modifymsg.form.address" auto-complete="off"></el-input>
+					<el-form-item label="验证码" label-width="70px" prop='securityCode'>
+						<el-input v-model="phoneMsg.form.securityCode" :maxlength='6' placeholder='请输入验证码' style='width: 50%;'></el-input>
+						<el-button @click='getSecurityCode()' :loading='phoneMsg.codeLoading' :disabled='phoneMsg.codeDisable' style='width: 45%; float: right;'>
+							<span v-if='!phoneMsg.codeDisable'>获取验证码</span>
+							<span v-else>{{phoneMsg.countdown}}s后可获取</span>
+						</el-button>
 					</el-form-item>
 				</el-form>
+
 				<div slot="footer" class="dialog-footer">
-					<el-button @click="closeModify()">取 消</el-button>
-					<el-button @click="updateUser()">确 定</el-button>
+					<el-button @click="saveNewPhone()">确 定</el-button>
+					<el-button @click="cancelNewPhone()">取 消</el-button>
+				</div>
+			</el-dialog>
+
+			<!-- 增加/修改收货地址 -->
+			<el-dialog
+				:visible.sync="addressMsg.visible"
+				:title="(addressMsg.isEdit ? '修改' : '新增') + '收货地址'"
+				width="50%"
+				append-to-body>
+				<el-form :model="addressMsg.form" :rules='addressRules' ref='addressDialog' label-position='left'>
+					<el-form-item label="收件人姓名" label-width="100px" prop='name'>
+						<el-input v-model="addressMsg.form.name"></el-input>
+					</el-form-item>
+					<el-form-item label="手机号" label-width="100px" prop='telephone'>
+						<el-input v-model="addressMsg.form.telephone" :maxlength='11'></el-input>
+					</el-form-item>
+					<el-form-item label="地址" label-width="100px" prop='addressCode'>
+						<el-cascader
+							v-model="addressMsg.form.addressCode"
+							:options="cityCode"
+							clearable
+							placeholder='请选择省市'
+							@change="handleChange"
+							/>
+					</el-form-item>
+					<el-form-item label="" label-width="100px" prop='addressDetail'>
+						<el-input type='textarea' v-model="addressMsg.form.addressDetail" :rows="2" :maxlength='20' placeholder='具体地址'></el-input>
+					</el-form-item>
+				</el-form>
+
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="saveAddress()">保存地址</el-button>
+					<el-button @click="cancelAddress()">取 消</el-button>
 				</div>
 			</el-dialog>
 			
-			<!-- 信息 -->
-			<el-form :model="userMsg" ref='loginDialog' label-position='left'>
-				<el-form-item label="用户名" label-width="100px">{{userMsg.username}}</el-form-item>
-				<el-form-item label="真实姓名" label-width="100px">{{userMsg.nickname}}</el-form-item>
-				<el-form-item label="联系电话" label-width="100px">{{userMsg.telephone}}</el-form-item>
-				<el-form-item label="收货地址" label-width="100px">{{userMsg.address}}</el-form-item>
-			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click="closeUsermsg()">确 定</el-button>
-				<el-button @click="toModifyMsg()">修改信息</el-button>
+				<div v-if='editMsg.isEdit'>
+					<el-button @click="closeModify()">取 消</el-button>
+					<el-button @click="saveUsermsg()">保 存</el-button>
+				</div>
+				<div v-else>
+					<el-button @click="closeUsermsg()">确 定</el-button>
+					<el-button @click="toEdit()">修改信息</el-button>
+				</div>
 			</div>
 		</el-dialog>
 
 		<!-- 提示信息 -->
-		<el-dialog
-		  title="提示"
-		  width="30%"
-		  :visible.sync="dialogVisible"
-		  >
-		  <span>本项目为虚拟项目，可选择不输入真实信息，且不可用于商业用途，不可随意转发，仅用于开发者开发和查看。</span>
-		  <span slot="footer" class="dialog-footer">
-		    <el-button type="primary" @click="dialogVisible = false">我知道了</el-button>
-		  </span>
-		</el-dialog>
+		<!-- <el-dialog
+			title="提示"
+			width="30%"
+			:visible.sync="dialogVisible"
+			>
+			<span>本项目为虚拟项目，可选择不输入真实信息，且不可用于商业用途，不可随意转发，仅用于开发者开发和查看。</span>
+			<span slot="footer" class="dialog-footer">
+				<el-button type="primary" @click="dialogVisible = false">我知道了</el-button>
+			</span>
+		</el-dialog> -->
 	</div>
 </template>
 
@@ -241,6 +311,8 @@ import pay from './pages/plate/Pay'
 import order from './pages/Order'
 import shoppingcart from './pages/ShoppingCart'
 
+import cityCode from './data/city.json'
+
 import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -252,12 +324,23 @@ export default {
 	},
 	data () {
 		var validSecurityCode = (rule, value, callback) => {
-			if (!this.loginForm.form.securityCode) {
-				callback(new Error('请输入验证码'))
-			} else if (this.loginForm.securityCode !== this.loginForm.form.securityCode) {
-				callback(new Error('验证码输入错误'))
-			} else {
-				callback()
+			if (this.loginForm.visible) {
+				if (!this.loginForm.form.securityCode) {
+					callback(new Error('请输入验证码'))
+				} else if (this.loginForm.securityCode !== this.loginForm.form.securityCode) {
+					callback(new Error('验证码输入错误'))
+				} else {
+					callback()
+				}
+			}
+			if (this.phoneMsg.visible) {
+				if (!this.phoneMsg.securityCode) {
+					callback(new Error('请输入验证码'))
+				} else if (this.phoneMsg.securityCode !== this.phoneMsg.form.securityCode) {
+					callback(new Error('验证码输入错误'))
+				} else {
+					callback()
+				}
 			}
 		}
 		return {
@@ -279,6 +362,7 @@ export default {
 					securityCode: ''
 				}
 			},
+			// 登录校验
 			loginRules: {
 				telephone: [{ required: true, min: 11, max: 11, message: '请输入11位手机号', trigger: 'blur' }],
 				securityCode: [{ required: true, validator: validSecurityCode }],
@@ -292,27 +376,64 @@ export default {
 				],
 			},
 
-			usermsgVisible: false,
-			modifymsg: {
-				visible: false,	// 修改信息模态框的visible
+			// 修改信息
+			editMsg: {
+				visible: false,
+				isEdit: false,
+				form: {},
+			},
+			// 更换手机号
+			phoneMsg: {
+				visible: false,
+				codeDisable: false,
+				codeLoading: false,
+				countdown: 30,
+				securityCode: '',
+				interval: null,
 				form: {
-
+					telephone: '',
+					securityCode: ''
 				}
 			},
+			// 新增/修改地址
+			addressMsg: {
+				visible: false,
+				isEdit: false,
+				form: {}
+			},
+			cityCode: [],
+			// 地址校验
+			addressRules: {
+				name: [
+					{ required: true, message: '请输入收件人姓名' },
+					{ min: 2, max: 4, message: '请输入2-4位的收件人姓名' },
+					{ pattern: /^[\u4E00-\u9FA5]+$/, message: '请输入正确的姓名格式' }
+				],
+				telephone: [{ required: true, min: 11, max: 11, message: '请输入11位手机号', trigger: 'blur' }],
+				addressCode: [{ required: true, message: '请选择省市' }],
+				addressDetail: [
+					{ required: true, message: '请输入具体地址' },
+					{ pattern: /^[A-Za-z0-9-\u4E00-\u9FA5]+$/, message: '请输入正确的地址格式' }
+				],
+			},
 			dropdownMenu: true,
-			modify_usermsg: {	//修改信息的表单验证
-				password: [{
-					required: true, message: '请输入新密码', trigger: 'blur'
-				}],
-				nickname: [{
-					required: true, message: '请输入真实姓名', trigger: 'blur'
-				}],
-				telephone: [{
-					required: true, message: '请输入联系电话', trigger: 'blur'
-				}],
-				address: [{
-					required: true, message: '请输入收货地址', trigger: 'blur'
-				}]
+
+			//修改校验
+			editRules: {
+				aliase: [
+					{ required: false, message: '请输入昵称' },
+					{ max: 8, message: '昵称不可超过8位字符' }
+				],
+				password: [
+					{ required: false, message: '请输入密码' },
+					{ min: 6, max: 16, message: '请输入6-16位的密码' }
+				],
+				nickname: [
+					{ required: true, message: '请输入姓名' },
+					{ min: 2, max: 4, message: '请输入2-4位的姓名' }
+				],
+				telephone: [{required: true, message: '请输入联系电话'}],
+				address: [{required: false, message: '请输入收货地址'}]
 			}
 		}
 	},
@@ -332,36 +453,43 @@ export default {
 		handleCommand (command) {
 			if(command == 'logout') {
 				this.toSetUserMsg({})
-				/*axios.get('/logout')
-				.then(()=>{
-					localStorage.removeItem('user');
-				})*/
 				this.$message.success('退出登录')
 			}
 			if (command == 'showMsg') {
-				this.usermsgVisible = true
+				this.editMsg.isEdit = false
+				this.editMsg.visible = true
 			}
 		},
 		// 点击你好请登录/用户名
 		login (e) {
 			if (!this.getUserMsg.username) {
 				this.dropdownMenu = false
-				this.loginForm = {
-					visible: true,
-					codeDisable: false,
-					codeLoading: false,
-					countdown: 30,
-					securityCode: '',
-					interval: null,
-					form: {
-						username: '',
-						password: '',
-						telephone: '',
-						securityCode: ''
-					}
-				}
+				this.loginForm.visible = true
 			} else {
 				this.dropdownMenu = true
+			}
+		},
+		// 登录模态框 打开
+		handleLoginOpen () {
+			this.active = '0'
+		},
+		// 登录模态框 关闭
+		handleLoginClose () {
+			this.$refs.loginDialog1.resetFields()
+			this.$refs.loginDialog2.resetFields()
+			this.loginForm = {
+				visible: false,
+				codeDisable: false,
+				codeLoading: false,
+				countdown: 30,
+				securityCode: '',
+				interval: null,
+				form: {
+					username: '',
+					password: '',
+					telephone: '',
+					securityCode: ''
+				}
 			}
 		},
 		handleTabClick (tab, event) {
@@ -390,35 +518,51 @@ export default {
 		// 获取验证码
 		async getSecurityCode () {
 			let that = this
-			let form = this.loginForm.form
+			let type
+			if (this.loginForm.visible) {
+				type = 'loginForm'
+			}
+			if (this.phoneMsg.visible) {
+				type = 'phoneMsg'
+			}
+
+			let form
+			switch (type) {
+				case 'loginForm':
+					form = this.loginForm.form
+					break
+				case 'phoneMsg':
+					form = this.phoneMsg.form
+					break
+			}
 			if (form.telephone && form.telephone.length === 11) {
 				// 检验手机号是否已被注册
 				let params = {
 					telephone: form.telephone,
 					justValid: true
 				}
-				this.loginForm.codeLoading = true
+				this[type].codeLoading = true
 				let { data: res } = await axios.get('/user/findPhone', { params })
-				this.loginForm.codeLoading = false
+				this[type].codeLoading = false
 				if (!res.success) {
 					this.$message.error(res.desc)
 					return false
-				} else if (res.data === 0) {
+				} else if (type === 'loginForm' && res.data === 0) {
 					this.$message.warning('该手机号尚未注册')
 					return false
 				}
 				setTimeout(() => {
-					that.loginForm.securityCode = (Math.random() + '').substr(2, 6)
-					console.log(that.loginForm.securityCode)
+					that[type].securityCode = (Math.random() + '').substr(2, 6)
+					console.log(that[type].securityCode)
 					that.$message.success('验证码已生成')
-					that.loginForm.codeDisable = true
-					that.loginForm.interval = setInterval(() => {
-						that.loginForm.countdown--
-						if (that.loginForm.countdown === 0) {
-							clearInterval(that.loginForm.interval)
-							that.loginForm.codeDisable = false
-							that.loginForm.securityCode = ''
-							that.loginForm.countdown = 30
+					that[type].codeDisable = true
+					that[type].interval = setInterval(() => {
+						that[type].countdown--
+						if (that[type].countdown === 0) {
+							clearInterval(that[type].interval)
+							that[type].codeDisable = false
+							that[type].securityCode = ''
+							that[type].countdown = 30
 						}
 					}, 1000)
 				}, 200)
@@ -428,10 +572,10 @@ export default {
 		},
 		// 关闭用户信息模态框
 		closeUsermsg () {
-			this.usermsgVisible = false
+			this.editMsg.visible = false
 		},
-		// 登录校验 todo
-		toLogin () {
+		// 登录校验
+		async toLogin () {
 			let params
 			let form = this.loginForm.form
 			if (this.active === '0') {
@@ -443,7 +587,9 @@ export default {
 						}
 						let { data: res } = await axios.get('/user/findPhone', { params })
 						if (res.success) {
-							this.toSetUserMsg(res.data[0])
+							let data = res.data[0]
+							data.address = JSON.parse(JSON.stringify(data.address))
+							this.toSetUserMsg(data)
 							this.$refs.loginDialog1.resetFields()
 							this.loginForm.visible = false
 							this.$message.success('登录成功')
@@ -454,43 +600,107 @@ export default {
 				})
 			}
 			if (this.active === '1') {
-				this.$refs.loginDialog2.validate(valid => {
+				this.$refs.loginDialog2.validate(async valid => {
 					if (valid) {
-						console.log(2)
+						params = {
+							username: form.username,
+							password: form.password,
+						}
+						let { data: res } = await axios.get('/user/login', { params })
+						if (res.success) {
+							let res = await axios.get('/user/findUser', {
+								params: { username: form.username }
+							})
+							let data = res.data[0]
+							data.address = JSON.parse(data.address)
+							this.toSetUserMsg(data)
+							this.$refs.loginDialog2.resetFields()
+							this.loginForm.visible = false
+							this.$message.success('登录成功')
+						} else {
+							this.$message.error(res.desc)
+						}
 					}
 				})
 			}
-					// if (!this.loginForm.form.username  || !this.loginForm.form.password){
-					// 	this.$message.warning('请输入用户名或密码')
-					// } else {
-					// 	// 此处进行验证
-					// 	axios.get('/user/findUser?username=' + this.loginForm.form.username)
-					// 	.then(({ data: results }) => {
-					// 		if (!results.length) {
-					// 			this.$message.warning('请输入正确的用户名或密码')
-					// 		} else if (results[0].username !== this.loginForm.form.username || results[0].password !== this.loginForm.form.password) {
-					// 			this.$message.warning('请输入正确的用户名或密码')
-					// 		} else {
-					// 			this.loginForm.visible = false
-					// 			this.$message.success('登录成功')
-					// 			this.toSetUserMsg(results[0])
-					// 			console.log(this.$store.state.userMsg)
-					// 		}
-							
-					// 	})
-					// }
 		},
-		// 打开修改信息模态框
-		toModifyMsg () {
-			this.modifymsg.visible = true
-			let modify = _.clone(this.userMsg)
-			this.modifymsg.form = modify
+
+		// 点击修改信息
+		toEdit () {
+			this.editMsg.isEdit = true
+			this.editMsg.form = _.cloneDeep(this.userMsg)
+			this.editMsg.form.password = ''
 		},
 		// 取消修改
 		closeModify () {
-			this.modifymsg.visible = false
-			this.$refs.userMsgForm.resetFields()
+			this.editMsg.isEdit = false
+			this.$refs.editDialog.resetFields()
 		},
+		// 保存修改个人信息
+		async saveUsermsg () {
+			this.$refs.editDialog.validate(async valid => {
+				if (valid) {
+					console.log(this.editMsg.form)
+					let form = _.cloneDeep(this.editMsg.form)
+					form.address = form.address ? JSON.stringify(form.address) : []
+					delete form.paycode
+					let { data } = await axios.post('/user/updateUser', form)
+					console.log(data)
+					if (data.success) {
+						this.$message.success('修改成功')
+						this.$refs.editDialog.resetFields()
+						this.editMsg.isEdit = false
+					}
+					// todo 更新vuex内容 提示是否设为默认地址 修改地址
+				}
+			})
+		},
+		
+		// 点击修改手机号
+		toChangePhone () {
+			this.phoneMsg.visible = true
+		},
+		// 保存新手机号
+		saveNewPhone () {
+			this.$refs.phoneDialog.validate(valid => {
+				if (valid) {
+					this.editMsg.form.telephone = this.phoneMsg.form.telephone
+					this.phoneMsg.visible = false
+				}
+			})
+		},
+		// 取消修改手机号
+		cancelNewPhone () {
+			this.$refs.phoneDialog.resetFields()
+			this.phoneMsg.visible = false
+		},
+
+		// 点击新增收货地址
+		addAddress () {
+			this.addressMsg.isEdit = false
+			this.addressMsg.visible = true
+		},
+		handleChange (value) {
+			console.log(value)
+		},
+		// 保存地址
+		saveAddress () {
+			this.$refs.addressDialog.validate(valid => {
+				if (valid) {
+					let form = _.cloneDeep(this.addressMsg.form)
+					form.addressLabel = this.getCodeLabel(form.addressCode)
+					console.log(form)
+					if (!this.editMsg.form.address) {
+						this.editMsg.form.address = [form]
+					} else {
+						this.editMsg.form.address.push(form)
+					}
+					this.addressMsg.visible = false
+					this.$refs.addressDialog.resetFields()
+				}
+			})
+		},
+		
 		// 提交用户信息
 		updateUser () {
 			this.$refs.userMsgForm.validate((valid) => {
@@ -561,9 +771,32 @@ export default {
 					key: this.input
 				}
 			})
+		},
+
+		/* -----------------------------------工具函数-----------------------------------*/
+		getCodeLabel (codes) {
+			let arr = []
+			this.cityCode.forEach(prov => {
+				if (prov.value === codes[0]) {
+					arr.push(prov.label)
+					prov.children.forEach(city => {
+						if (city.value === codes[1]) {
+							arr.push(city.label)
+							city.children.forEach(area => {
+								if (area.value === codes[2]) {
+									arr.push(area.label)
+								}
+							})
+						}
+					})
+				}
+			})
+			return arr
 		}
 	},
-	created () {},
+	created () {
+		this.cityCode = JSON.parse(JSON.stringify(cityCode))
+	},
 	mounted () {
 		let that = this
 		setTimeout(() => {
@@ -572,3 +805,12 @@ export default {
 	},
 }
 </script>
+
+<style scoped>
+	.addressItem {
+		line-height: normal;
+		padding: 5px;
+		margin-bottom: 10px;
+		border: 1px solid #ccc;
+	}
+</style>

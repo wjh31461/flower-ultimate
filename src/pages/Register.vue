@@ -176,7 +176,10 @@ export default {
 
 				aliase: [{ required: false, message: '请输入昵称', trigger: 'blur' }],
 				paycode: [{ required: true, message: '请设置支付密码' }],
-				nickname: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }]
+				nickname: [
+					{ required: true, message: '请输入姓名', trigger: 'blur' },
+					{ min: 2, max: 4, message: '请输入2-4位的姓名', trigger: 'blur' }
+				]
 			},
 
 			disable: false,
@@ -214,7 +217,6 @@ export default {
 					break
 				case 1:
 					this.$refs.basicForm.validate(async (valid) => {
-						console.log(valid)
 						if (valid) {
 							let params = {
 								username: this.user.username
