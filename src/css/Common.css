@@ -278,3 +278,10 @@ div {
 	background-color: rgba(247,99,114,0.8);
 	border-color: rgba(247,99,114,0.8);
 }
+
+.marginB10 {
+	margin-bottom: 10px;
+}
+.textCenter {
+	text-align: center;
+}

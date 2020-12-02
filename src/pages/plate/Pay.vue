@@ -7,17 +7,17 @@
 					<div class="pay-receive-msg">
 						<div class="nickname">
 							<span>收件人：</span>
-							<span>{{receive.form.nickname}}</span>
+							<span>{{receiveMsg.name}}</span>
 						</div>
 						<div class="telephone">
 							<span>联系电话：</span>
-							<span>{{receive.form.telephone}}</span>
+							<span>{{receiveMsg.telephone}}</span>
 						</div>
 						<div class="address">
 							<span>收货地址：</span>
-							<span>{{receive.form.address}}</span>
+							<span>{{receiveMsg.addressLabel ? receiveMsg.addressLabel.join('') + receiveMsg.addressDetail : ''}}</span>
 						</div>
-						<el-button @click='toModifyMsg'>修改信息</el-button>
+						<el-button @click='toEditMsg()'>修改地址</el-button>
 					</div>
 				</div>
 				
@@ -34,72 +34,77 @@
 							<li v-for='row in msg' :key='row.id'>
 								<div class="commodity-img"><img :src="row.src"></div>
 								<div class="commodity-title"><span>{{row.name}}</span></div>
-								<div class="commodity-price">￥<span>{{row.pricel}}</span></div>
+								<div class="commodity-price"><span>￥{{row.pricel}}</span></div>
 								<div class="commodity-number"><span>{{row.number}}</span></div>
-								<div class="commodity-xiaoji">￥<span >{{row.number * row.pricel}}</span></div>
+								<div class="commodity-xiaoji"><span>￥{{row.number * row.pricel}}</span></div>
 								<div class="commodity-shifu"><span>￥{{row.number * row.pricel}}</span></div>
 							</li>
 						</ul>
 					</div>
 					<div class="pay-pay">
 						<div class="pay-total"><span>总计：</span><span>￥{{total_price}}</span></div>
-						<div class="pay-gopay"><el-button @click='gopay'>去付款</el-button></div>
+						<div class="pay-topay"><el-button @click='topay()'>去付款</el-button></div>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- 修改信息的模态框 -->
-		<el-dialog title="收货地址" :visible.sync="receive.visible">
-			<el-form :model="receive.form" ref='modifyForm' :rules='modify_rules' label-position='left'>
-				<el-form-item label="收件人" label-width='100px' prop='nickname'>
-					<el-input v-model="receive.form.nickname" autocomplete="off"></el-input>
-				</el-form-item>
-				<el-form-item label="联系电话" label-width='100px' prop='telephone'>
-					<el-input v-model="receive.form.telephone" autocomplete="off"></el-input>
-				</el-form-item>
-				<el-form-item label="收货地址" label-width='100px' prop='address'>
-					<el-input v-model="receive.form.address" autocomplete="off" placeholder='请填写详细地址'></el-input>
-				</el-form-item>
-			</el-form>
-			<div slot="footer" class="dialog-footer">
-				<el-button @click="closePDialog">恢复默认</el-button>
-				<el-button type="primary" @click="saveOrUpdateReceive">保 存</el-button>
-			</div>
-		</el-dialog>
+		<!-- 修改地址 -->
+		<el-dialog title="我的收货地址" :visible.sync="receiveVisible">
+			<div v-for='(item, index) in addressList' @click='setAddress(item)' class='addressItem' style='cursor: pointer;'>
+				<div>
+					<span>{{item.name}} {{item.telephone}}</span>
+					<span style="float: right;">
+						<span v-if='item.isMain' class='isMainAddress'>默认</span>
+						<i class='el-icon-edit' @click.stop='toEditAddress(item, index)' style='cursor: pointer;' title='修改地址'></i>
+						<i class='el-icon-close' @click.stop='item.popover = true' title='删除地址' style='cursor: pointer;'></i>
 
-		<!-- 去付款的模态框 -->
-		<el-dialog title="选择支付方式" :visible.sync="pay.visible" class='topay'>
-			<div class="pay-way">
-				<el-radio-group v-model="radio">
-					<el-radio :label="1">
-						<img src="static/a-pay/支付宝.png">
-						<span>支付宝</span>
-					</el-radio>
-					<el-radio :label="2">
-						<img src="static/a-pay/微信.png">
-						<span>微信支付</span>
-					</el-radio>
-					<el-radio :label="3">
-						<img src="static/a-pay/银行卡.png">
-						<span>银行卡</span>
-					</el-radio>
-				</el-radio-group>
+						<el-popover
+							ref="popover"
+							placement="top"
+							width="160"
+							v-model="item.popover">
+							<p>确定删除该地址？</p>
+							<div style="text-align: right; margin: 0;">
+								<el-button type="text" size="mini" @click.stop="item.popover = false">取消</el-button>
+								<el-button type="primary" size="mini" @click.stop="deleteAddress(index)">确定</el-button>
+							</div>
+						</el-popover>
+					</span>
+				</div>
+				<div>
+					{{item.addressLabel.join('')}} {{item.addressDetail}}
+				</div>
 			</div>
+			
+			<div slot="footer" class="dialog-footer">
+				<el-button v-if='addressList.length < 5' @click="addAddress()">新增收货地址</el-button>
+			</div>
+
+			<!-- 增加/修改收货地址 -->
 			<el-dialog
-				width="30%"
-				title="输入支付密码"
-				:visible.sync="paynow.visible"
-				append-to-body>
-				<el-input v-model='password' placeholder='请输入密码' show-password></el-input>
+				:visible.sync="addressVisible"
+				:title="(addressMsg.isEdit ? '修改' : '新增') + '收货地址'"
+				width="50%"
+				append-to-body
+				:close-on-click-modal='false'
+				@close='handleAddressClose'
+				>
+				<editAddress ref='editAddress' :isEdit='addressMsg.isEdit' :data='addressMsg.data' :index='addressMsg.index'></editAddress>
+
 				<div slot="footer" class="dialog-footer">
-					<el-button @click="closePaypasswdDialog">取 消</el-button>
-					<el-button type="primary" @click="payed">确 定</el-button>
+					<el-button @click="saveAddress()">保存地址</el-button>
+					<el-button @click="cancelAddress()">取 消</el-button>
 				</div>
 			</el-dialog>
+		</el-dialog>
+
+		<!-- 去付款 -->
+		<el-dialog title="输入支付密码" :visible.sync="payVisible" class='topay'>
+			<paycode ref='paycode' @ok='submitPay'></paycode>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click="closePayDialog">取 消</el-button>
-				<el-button type="primary" @click="topaynow">确 定</el-button>
+				<el-button @click="closePayDialog()">取 消</el-button>
+				<el-button type="primary" @click="toSubmitPay()">确 定</el-button>
 			</div>
 		</el-dialog>
 	</div>
@@ -108,44 +113,31 @@
 <script>
 import axios from '@/http/axios'
 import _ from 'lodash'
+import { mapState, mapGetters, mapActions } from 'vuex'
+import cityCode from '../../data/city.json'
+
 export default {
-	props: ['usermsg'],
 	data () {
 		return {
-			// 收件人的信息
-			receive: {
-				visible: false,	//修改收货信息的模态框
-				form: {
-					//nickname: '刘浩',
-					//telephone: '18454236854',
-					//address: '江苏省苏州市昆山市巴城镇学院路999号美居客电商产业大楼'
-				}
-			},
+			payMsg: [],
+			cityCode: [],
+			from: '',
 
-			// 商品信息
-			/*commodity: [{
-				id: '300',
-				name: '一心一意',
-				pricel: '138',
-				src: '/static/love-1/9010011.jpg',
-				number: '2'
-			},{
-				id: '300',
-				name: '一心3意',
-				pricel: '28',
-				src: '/static/love-1/9010011.jpg',
-				number: '4'
-			}],*/
+			// 收件人信息
+			receiveVisible: false,
+			receiveMsg: {},
+			addressList: [],
+			addressVisible: false,
+			addressMsg: {
+				isEdit: false,
+				index: 0,
+				data: {}
+			},
 			
 			// 去支付模态框
-			pay: {
-				visible: false
-			},
-			paynow: {
-				visible: false
-			},
-			radio: '',
+			payVisible: false,
 			password: '',
+
 			modify_rules: {
 				nickname: [{
 					required: true, message: '请输入收件人姓名', trigger: 'blur'
@@ -158,10 +150,276 @@ export default {
 				}]
 			},
 			order: [],
-			msg: [],
+			msg: []
 		}
 	},
+	// 获取跳转前路由
+	beforeRouteEnter (to, from, next) {
+		next(vm => {
+			vm.from = from.name
+		})
+	},
+	methods: {
+		...mapActions(['toSetUserMsg']),
+		// 获取商品id
+		getCommodityId () {
+			let ids = this.payMsg.map(item => {
+				return item.id
+			})
+			return ids
+		},
+		
+		// 获取默认地址
+		getDefaultMsg () {
+			let ss = window.sessionStorage
+			let userMsg = ss.getItem('userMsg')
+			let msg = _.clone(this.getUserMsg) || (userMsg ? JSON.parse(userMsg) : {})
+
+			let address = msg.address.filter(item => {
+				return item.isMain === true
+			})[0]
+			this.receiveMsg = address || msg.address[0] || {}
+		},
+		
+		// 根据id查找商品
+		async findCommodityByIds (ids) {
+			this.msg = []
+			let res
+			if (ids.length === 1) {
+				res = await axios({
+					method: 'GET',
+					url: '/commodity/findCommodityById',
+					params: {
+						id: ids[0]
+					}
+				})
+			} else {
+				res = await axios.post('/commodity/findCommodityByIds', { ids: JSON.stringify(ids) })
+			}
+			if (res.data.success) {
+				res.data.data.forEach(item => {
+					let { id, name, src, pricel } = item
+					let obj = {
+						name,
+						src,
+						pricel
+					}
+					this.payMsg.forEach(msg => {
+						if (msg.id === id) {
+							obj.number = msg.number
+						}
+					})
+					this.msg.push(obj)
+				})
+				this.msg = JSON.parse(JSON.stringify(this.msg))
+			} else {
+				this.$message.error(res.data.desc)
+			}
+		},
+		
+		// -------------------------------------地址--------------------------------------
+		// 修改收货地址
+		toEditMsg () {
+			this.addressList = _.cloneDeep(this.userMsg.address)
+			this.receiveVisible = true
+		},
+		// 点击更换地址
+		setAddress (addr) {
+			this.receiveMsg = _.cloneDeep(addr)
+			this.receiveVisible = false
+		},
+		// 点击编辑地址
+		toEditAddress (item, index) {
+			this.addressVisible = true
+			this.addressMsg.index = index
+			this.addressMsg.isEdit = true
+			this.addressMsg.data = _.cloneDeep(item)
+		},
+		// 删除地址
+		async deleteAddress (index) {
+			let data = _.cloneDeep(this.userMsg)
+			data.address.splice(index, 1)
+			data.address.forEach(item => {
+				delete item.addressLabel
+			})
+			data.address = JSON.stringify(data.address)
+			
+			let res = await axios.post('/user/updateUser', data)
+			if (res.data.success) {
+				let res1 = await axios.get('/user/findUser', {
+					params: { username: data.username }
+				})
+				if (res1.data.success) {
+					this.addressList[index].popover = false
+					this.updateUserData(res1.data.data[0])
+					this.addressList = _.cloneDeep(this.userMsg.address)
+				} else {
+					this.$message.error(res1.data.desc)
+				}
+			} else {
+				this.$message.error(res.data.desc)
+			}
+		},
+		// 点击新增地址
+		addAddress () {
+			this.addressMsg.isEdit = false
+			this.addressVisible = true
+		},
+		// 地址框关闭
+		handleAddressClose () {
+			this.$refs.editAddress.resetFields()
+		},
+		// 保存地址
+		async saveAddress () {
+			let flag = await this.$refs.editAddress.saveAddress()
+			if (flag) {
+				this.addressVisible = false
+				this.addressList = _.cloneDeep(this.userMsg.address)
+			}
+		},
+		cancelAddress () {
+			this.addressVisible = false
+		},
+
+		// 点击去付款
+		topay () {
+			let { name, telephone, addressCode, addressDetail } = this.receiveMsg
+
+			if (!name || !telephone || !addressCode.length || !addressDetail) {
+				this.$message.warning('请输入完整收货信息')
+				return false
+			}
+			this.payVisible = true
+		},
+		// 去付款 -> 点确定
+		toSubmitPay () {
+			let paycode = this.$refs.paycode.paycode
+			this.submitPay(paycode)
+		},
+		// 关闭输入支付密码
+		closePayDialog () {
+			this.$refs.paycode.clearPaycode()
+			this.payVisible = false
+		},
+		// 密码输入完成 点确定
+		async submitPay (paycode) {
+			if (paycode.join('') !== this.userMsg.paycode + '') {
+				this.$message.warning('密码输入不正确')
+				return false
+			}
+			// 提交订单
+			let { username } = this.userMsg
+			let { name, telephone } = this.receiveMsg
+			let promise = []
+			let cartPromise = []
+			this.payMsg.forEach(item => {
+				let address = {
+					addressCode: this.receiveMsg.addressCode,
+					addressDetail: this.receiveMsg.addressDetail
+				}
+
+				let params = {
+					username,
+					name,
+					telephone,
+					address: JSON.stringify(address),
+					id: item.id,
+					number: item.number
+				}
+
+				// 判断是从购物车进入 还是立即购买进入
+				if (this.from !== 'commodity') {
+					// 1.先清除该购物车信息
+					let data = {
+						username,
+						id: item.id
+					}
+					cartPromise.push(this.deleteCart(data))
+					// 2.添加至订单
+				}
+				promise.push(this.submitOrder(params))
+			})
+			if (this.from !== 'commodity') {
+				await Promise.all(cartPromise)
+			}
+			let res = await Promise.all(promise)
+			if (res) {
+				this.$message.success('购买成功')
+				this.$router.push('/')
+				// 清除sessionStorage的payMsg
+				let ss = window.sessionStorage
+				ss.removeItem('payMsg')
+			}
+		},
+		// 提交订单
+		submitOrder (params) {
+			return new Promise((resolve, reject) => {
+				axios({
+					method: 'POST',
+					url: '/order/insertOrder',
+					data: params
+				}).then(res => {
+					if (!res.data.success) {
+						this.$message.error(res.data.desc)
+					}
+					resolve(res)
+				})
+			})
+		},
+		deleteCart (data) {
+			return new Promise((resolve, reject) => {
+				axios({
+					method: 'POST',
+					url: '/cart/deleteCart',
+					data
+				}).then(res => {
+					if (!res.data.success) {
+						this.$message.error(res.data.desc)
+					}
+					resolve(res)
+				})
+			})
+		},
+
+		// -----------------------------------工具函数--------------------------------------
+		updateUserData (res) {
+			let data = _.cloneDeep(res)
+			// 获取城市码对应的名称
+			data.address = JSON.parse(data.address)
+			data.address.forEach(item => {
+				item.addressLabel = this.getCodeLabel(item.addressCode)
+			})
+			// 存数据 vuex sessionStorage
+			this.toSetUserMsg(data)
+			let ss = window.sessionStorage
+			ss.setItem('userMsg', JSON.stringify(data))
+		},
+		getCodeLabel (codes) {
+			let arr = []
+			this.cityCode.forEach(prov => {
+				if (prov.value === codes[0]) {
+					arr.push(prov.label)
+					prov.children.forEach(city => {
+						if (city.value === codes[1]) {
+							arr.push(city.label)
+							city.children.forEach(area => {
+								if (area.value === codes[2]) {
+									arr.push(area.label)
+								}
+							})
+						}
+					})
+				}
+			})
+			return arr
+		},
+		
+	},
 	computed: {
+		...mapState({
+			userMsg: state => state.userMsg
+		}),
+		...mapGetters(['getUserMsg']),
 		// 计算总价
 		total_price () {
 			let total = 0
@@ -172,158 +430,24 @@ export default {
 		}
 	},
 	watch: {
-		'$parent.$parent.usermsg.form.username': function () {
-			if (this.$parent.$parent.usermsg.form.username == undefined) {
+		'userMsg.username': function (val) {
+			if (!val) {
 				this.$router.push('/')
 			}
-		}
+		},
 	},
-	beforeCreate () {},
 	created () {
-		this.getcommodityid()	// 获取id(单件)
-		this.getusermsg()			// 获取user信息
-	},
-	mounted () {},
-	methods: {
-		// 页面跳转时get商品id msg->pay
-		getcommodityid () {
-			let id = this.$route.query.id	// id是数组
-			if (Array.isArray(id) === true) {
-				let entries = id.entries()	// entries为数组的key,val值
-				for ([index, val] of entries) {
-					this.msg.push(val)	// [{id:'302',number:2}{}{}]
-				}
-			}
-			let ids = this.msg.map(item => {
-				return item.id
-			})
-			this.findCommodityByIds(ids)
-		},
-		//收货信息替换
-		getusermsg () {
-			let receive = _.clone(this.$parent.$parent.usermsg.form)
-			this.receive.form = receive
-		},
-		// 根据id查找商品
-		findCommodityByIds (ids) {
-			if (ids.length == 1) {
-				axios.get('/commodity/findCommodityById?id=' + ids[0])
-				.then(({ data: results }) => {
-					this.$set(this.msg[0], 'name', results[0].name)
-					this.$set(this.msg[0], 'src', results[0].src)
-					this.$set(this.msg[0], 'pricel', results[0].pricel)
-				})
-				.catch(() => {
-					this.$message.error('ids查询失败')
-				})
-			} else {
-				axios.post('/commodity/findCommodityByIds', { ids })
-				.then(({ data: results }) => {
-					for(let i = 0; i < this.msg.length; i++) {
-						this.$set(this.msg[i], 'name', results[i].name)
-						this.$set(this.msg[i], 'src', results[i].src)
-						this.$set(this.msg[i], 'pricel', results[i].pricel)
-					}
-				})
-				.catch(() => {
-					this.$message.error('ids查询失败')
-				})
-			}
-		},
-		// 修改收货信息
-		toModifyMsg () {
-			this.receive.visible = true
-			this.$refs.modifyForm.resetFields()
-		},
-		// 取消->关闭修改收件人信息的模态框(恢复默认)
-		closePDialog () {
-			this.receive.visible = false
-			let receive = _.clone(this.$parent.$parent.usermsg.form)
-			this.receive.form = receive
-		},
-		// 保存->保存新收货信息
-		saveOrUpdateReceive () {
-			this.$refs.modifyForm.validate((valid) => {
-				if (valid) {
-					this.receive.visible = false
-				} else {
-					this.$message.warning('请输入完整收货信息')
-					return false
-				}
-			})
-		},
-		// 点击去付款->模态框
-		gopay () {
-			if (this.receive.form.nickname == null) {
-				this.$message.warning('请输入完整收货信息')
-			} else {
-				this.pay.visible = true
-			}
-		},
-		// 关闭选择支付方式模态框
-		closePayDialog () {
-			this.pay.visible = false
-			this.radio = ''	// 清除支付单选项
-		},
-		// 去付款->确定
-		topaynow () {
-			if (this.radio == '') {
-				this.$message.warning('请选择支付方式')
-			}else{
-				this.paynow.visible = true
-			}
-		},
-		// 取消->关闭输入支付密码的模态框
-		closePaypasswdDialog () {
-			this.paynow.visible = false
-			this.password = ''
-		},
-		// 输入支付密码->确定
-		payed () {
-			if (this.password !== this.$parent.$parent.usermsg.form.password) {
-				this.$message.warning('密码错误')
-			} else {
-				// 传数据到购物车，清除掉支付成功的商品
-				// 清除order数组，传数据到我的订单
-				this.order.length = 0
-				this.msg.forEach(item => {
-					this.order.push({
-						username: this.$parent.$parent.usermsg.form.username,
-						nickname: this.receive.form.nickname,
-						telephone: this.receive.form.telephone,
-						address: this.receive.form.address,
-						id: item.id,
-						number: item.number
-					})
-				})
-
-				this.order.forEach(item => {
-					axios.post('/order/insertOrder', item)
-					.then(() => {
-						this.$message.success('支付成功！')
-						this.paynow.visible = false
-						this.pay.visible = false
-
-						let obj = {
-							username: item.username,
-							id: item.id
-						}
-						axios.post('/cart/deleteCart', obj)
-						.then(() => {
-							this.$message.success('购物车修改成功')
-							this.$router.push('/')
-						})
-						.catch(() => {
-							this.$message.error('购物车修改错误')
-						})
-					})
-					.catch(() => {
-						this.$message.error('支付错误')
-					})
-				})
-			}
-		},
-		
+		// 存sessionStorage
+		let ss = window.sessionStorage
+		if (Object.keys(this.$route.params).length) {
+			let params = this.$route.params
+			ss.setItem('payMsg', JSON.stringify(params.payMsg))
+		}
+		this.payMsg = JSON.parse(ss.getItem('payMsg'))
+		let ids = this.getCommodityId()
+		this.findCommodityByIds(ids)
+		this.getDefaultMsg()
+		this.cityCode = JSON.parse(JSON.stringify(cityCode))
 	}
 }
 </script>
@@ -413,7 +537,7 @@ export default {
 		font-size: 20px;
 		font-weight: 700;
 	}
-	.pay-pay > .pay-gopay .el-button{
+	.pay-pay > .pay-topay .el-button{
 		width: 160px;
 		height: 50px;
 		font-size: 18px;
@@ -422,27 +546,30 @@ export default {
 		border-color: #f76372;
 		float: right;
 	}
-	.pay-gopay .el-button:hover {
+	.pay-topay .el-button:hover {
 		background-color: rgba(247,99,114,0.9);
 		border-color: rgba(247,99,114,0.9);
 	}
-	.pay-pay > *::after,
-	.topay .pay-way::after {
+	.pay-pay > *::after {
 		content: '';
 		display: block;
 		clear: both;
 	}
 
-	
-	.topay .pay-way > .el-radio-group > * > .el-radio__label > span {
-		font-size: 24px;
+	/* 收货地址 */
+	.addressItem {
+		line-height: normal;
+		padding: 5px;
+		margin-bottom: 10px;
+		border: 1px solid #ccc;
+		border-radius: 3px;
 	}
-	.topay .pay-way > .el-radio-group > * > .el-radio__label > span,
-	.topay .pay-way > .el-radio-group > * > .el-radio__input {
-		position: relative;
-		bottom: 20px;
+	.addressItem:hover {
+		border: 1px solid #f76372;
 	}
-	.topay .pay-way > .el-radio-group > * {
-		margin-right: 60px;
+	.isMainAddress {
+		padding: 2px 5px;
+		background-color: #f76372;
+		color: #fff;
 	}
 </style>

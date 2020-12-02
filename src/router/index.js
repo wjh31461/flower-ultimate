@@ -35,49 +35,52 @@ export default new Router({
       component: Order
     },{
       path: '/shoppingCart',
+      name: '/shoppingCart',
       component: ShoppingCart
     },{
       path: '/plate',
       component: Plate,
       children:[{
-        path:'pay',
+        path: 'pay',
+        name: 'pay',
         component:Pay
       },{
-        path:'commodity',
-        component:Commodity
+        path: 'commodity',
+        name: 'commodity',
+        component: Commodity
       },{
-        path:'overview',
-        component:Overview
+        path: 'overview',
+        component: Overview
       },{
-        path:'service',
-        component:Service,
-        children:[{
-          path:'cjwt',
-          component:Cjwt
+        path: 'service',
+        component: Service,
+        children: [{
+          path: 'cjwt',
+          component: Cjwt
         },{
-          path:'qxdd',
-          component:Qxdd
+          path: 'qxdd',
+          component: Qxdd
         },{
-          path:'shfw',
-          component:Shfw
+          path: 'shfw',
+          component: Shfw
         },{
-          path:'fwsm',
-          component:Fwsm
+          path: 'fwsm',
+          component: Fwsm
         },{
-          path:'pssm',
-          component:Pssm
+          path: 'pssm',
+          component: Pssm
         },{
-          path:'aqtk',
-          component:Aqtk
+          path: 'aqtk',
+          component: Aqtk
         },{
-          path:'liucheng',
-          component:Liucheng
+          path: 'liucheng',
+          component: Liucheng
         },{
-          path:'pscs',
-          component:Pscs
+          path: 'pscs',
+          component: Pscs
         },{
-          path:'yuding',
-          component:Yuding
+          path: 'yuding',
+          component: Yuding
         }]
       }]
     }

@@ -1,6 +1,7 @@
 const url = require('url')
 const http = require('http')
 const querystring = require('querystring')
+const moment = require('moment')
 const commodityDB = require('./db/commodityDB')
 const userDB = require('./db/userDB')
 const orderDB = require('./db/orderDB')
@@ -21,8 +22,17 @@ let server = http.createServer((req, resp) => {
 	switch (pathname) {
 		// ----------------------------------------商品----------------------------------------
 		case '/commodity/findAllCommodity': {	//get
-			commodityDB.findAllCommodity((results) => {
-				resp.write(JSON.stringify(results))
+			commodityDB.findAllCommodity((err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -30,8 +40,17 @@ let server = http.createServer((req, resp) => {
 		case '/commodity/findCommodityById': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			commodityDB.findCommodityById(query.id, (results) => {
-				resp.write(JSON.stringify(results))
+			commodityDB.findCommodityById(query.id, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -39,8 +58,17 @@ let server = http.createServer((req, resp) => {
 		case '/commodity/findCommodityByType': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			commodityDB.findCommodityByType(query.type, (results) => {
-				resp.write(JSON.stringify(results))
+			commodityDB.findCommodityByType(query.type, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -48,8 +76,17 @@ let server = http.createServer((req, resp) => {
 		case '/commodity/findCommodityByKey': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			commodityDB.findCommodityByKey(query.key, (results) => {
-				resp.write(JSON.stringify(results))
+			commodityDB.findCommodityByKey(query.key, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -61,15 +98,27 @@ let server = http.createServer((req, resp) => {
 			})
 			req.on('end', () => {
 				totalQuery = buffer
-				totalQuery = querystring.parse(totalQuery)	//{ ids: [ '300', '308', '304' ] }
-				commodityDB.findCommodityByIds(totalQuery.ids, (err, results) => {
-					if (err) {
-						resp.write(JSON.stringify(err))
-						resp.end()
-					} else {
-						resp.write(JSON.stringify(results))
-						resp.end()
+				totalQuery = querystring.parse(totalQuery)
+				// 现在只能接收到x-www-form-urlencoded，接收不到form-data中的内容，此处先接收字符串数组
+				let ids = totalQuery.ids
+				arr = ids.split('')
+				arr.pop()
+				arr.shift()
+				ids = arr.join('')
+				ids.replace(/'/g, '"')
+
+				commodityDB.findCommodityByIds(ids, (err, results) => {
+					let obj = {
+						success: true,
+						data: results,
+						desc: '查询ids成功'
 					}
+					if (err) {
+						obj.success = false
+						obj.desc = JSON.stringify(err)
+					}
+					resp.write(JSON.stringify(obj))
+					resp.end()
 				})
 			})
 			break
@@ -120,26 +169,24 @@ let server = http.createServer((req, resp) => {
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
 			userDB.findUsername(query.username, (err, results) => {
-				let success = true
-				let desc = ''
+				let obj = {
+					success: true,
+					data: '',
+					desc: ''
+				}
 
 				if (!results.length) {
-					success = false
-					desc = '该用户名不存在'
+					obj.success = false
+					obj.desc = '该用户名不存在'
 				} else {
 					if (results[0].password !== query.password) {
-						success = false
-						desc = '密码错误'
+						obj.success = false
+						obj.desc = '密码错误'
 					}
 				}
 				if (err) {
-					success = false
-					desc = JSON.stringify(err)
-				}
-				let obj = {
-					success,
-					data: '',
-					desc
+					obj.success = false
+					obj.desc = JSON.stringify(err)
 				}
 				resp.write(JSON.stringify(obj))
 				resp.end()
@@ -150,8 +197,13 @@ let server = http.createServer((req, resp) => {
 		case '/user/findUser': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			userDB.findUser(query.username, (results) => {
-				resp.write(JSON.stringify(results))
+			userDB.findUser(query.username, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -166,18 +218,14 @@ let server = http.createServer((req, resp) => {
 				totalQuery = buffer
 				totalQuery = querystring.parse(totalQuery)
 				userDB.updateUser(totalQuery, (err, results) => {
-					let success = true
-					let desc = ''
-					
-					if (err) {
-						success = false
-						desc = JSON.stringify(err)
-						throw err
-					}
 					let obj = {
-						success,
+						success: true,
 						data: '',
-						desc
+						desc: ''
+					}
+					if (err) {
+						obj.success = false
+						obj.desc = JSON.stringify(err)
 					}
 					resp.write(JSON.stringify(obj))
 					resp.end()
@@ -219,8 +267,17 @@ let server = http.createServer((req, resp) => {
 		case '/order/findOrderByUsername': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			orderDB.findOrderByUsername(query.username, (results) => {
-				resp.write(JSON.stringify(results))
+			orderDB.findOrderByUsername(query.username, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -228,8 +285,17 @@ let server = http.createServer((req, resp) => {
 		case '/order/deleteOrder': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			orderDB.deleteOrder(query, (results) => {
-				resp.write(JSON.stringify(results))
+			orderDB.deleteOrder(query, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: ''
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -242,14 +308,23 @@ let server = http.createServer((req, resp) => {
 			req.on('end', () => {
 				totalQuery = buffer
 				totalQuery = querystring.parse(totalQuery)
-				orderDB.insertOrder(totalQuery, (err, results) => {
-					if (err) {
-						resp.write('添加失败')
-						resp.write(JSON.stringify(err))
-					} else {
-						resp.write('添加成功')
-						resp.end()
+				let time = moment().format('YYYYMMDDHHmmss')
+				let params = Object.assign({}, totalQuery, {
+					orderId: time,
+					dealId: time + (totalQuery.id.length < 3 ? ('0' + totalQuery.id) : totalQuery.id)
+				})
+				orderDB.insertOrder(params, (err, results) => {
+					let obj = {
+						success: true,
+						data: '',
+						desc: '添加成功'
 					}
+					if (err) {
+						obj.success = false
+						obj.desc = JSON.stringify(err)
+					}
+					resp.write(JSON.stringify(obj))
+					resp.end()
 				})
 			})
 			break
@@ -260,8 +335,17 @@ let server = http.createServer((req, resp) => {
 		case '/cart/findCartByUsername': {	//get
 			let query = url.parse(req.url).query
 			query = querystring.parse(query)
-			cartDB.findCartByUsername(query.username, (results) => {
-				resp.write(JSON.stringify(results))
+			cartDB.findCartByUsername(query.username, (err, results) => {
+				let obj = {
+					success: true,
+					data: results,
+					desc: '查询成功'
+				}
+				if (err) {
+					obj.success = false
+					obj.desc = JSON.stringify(err)
+				}
+				resp.write(JSON.stringify(obj))
 				resp.end()
 			})
 			break
@@ -275,13 +359,17 @@ let server = http.createServer((req, resp) => {
 				totalQuery = buffer
 				totalQuery = querystring.parse(totalQuery)
 				cartDB.addCartNumber(totalQuery, (err, results) => {
-					if (err) {
-						resp.write('添加失败')
-						resp.write(JSON.stringify(err))
-					} else {
-						resp.write('添加成功')
-						resp.end()
+					let obj = {
+						success: true,
+						data: '',
+						desc: '+1成功'
 					}
+					if (err) {
+						obj.success = false
+						obj.desc = JSON.stringify(err)
+					}
+					resp.write(JSON.stringify(obj))
+					resp.end()
 				})
 			})
 			break
@@ -295,13 +383,17 @@ let server = http.createServer((req, resp) => {
 				totalQuery = buffer
 				totalQuery = querystring.parse(totalQuery)
 				cartDB.reduceCartNumber(totalQuery, (err, results) => {
-					if (err) {
-						resp.write('减去失败')
-						resp.write(JSON.stringify(err))
-					} else {
-						resp.write('减去成功')
-						resp.end()
+					let obj = {
+						success: true,
+						data: '',
+						desc: '-1成功'
 					}
+					if (err) {
+						obj.success = false
+						obj.desc = JSON.stringify(err)
+					}
+					resp.write(JSON.stringify(obj))
+					resp.end()
 				})
 			})
 			break
@@ -313,40 +405,41 @@ let server = http.createServer((req, resp) => {
 			})
 			req.on('end', () => {
 				totalQuery = buffer
-				totalQuery = querystring.parse(totalQuery)	//{username: "123", id: 600, number: 2}
+				totalQuery = querystring.parse(totalQuery)	//{ username: "123", id: 600, number: 2 }
 				cartDB.judgeCart(totalQuery, (err, results) => {
+					let obj = {
+						success: true,
+						data: '',
+						desc: ''
+					}
 					if (err) {
-						resp.write('添加失败')
-						resp.write(JSON.stringify(err))
-						resp.end()
+						obj.success = false
+						obj.desc = JSON.stringify(err)
 					} else {
-						let a = JSON.stringify(results)	//[ RowDataPacket { count: 1 } ]
-						a = JSON.parse(a)	//[ { count: 1 } ]
-						if (a[0].count == 0) {
-							cartDB.insertCart(totalQuery, (err, results) => {
-								if (err) {
-									resp.write('新增失败')
-									resp.write(JSON.stringify(err))
-									resp.end()
+						let res = JSON.stringify(results)	//[ RowDataPacket { count: 1 } ]
+						res = JSON.parse(res)	//[ { count: 1 } ]
+						if (res[0].count === 0) {
+							cartDB.insertCart(totalQuery, (erri, resultsi) => {
+								if (erri) {
+									obj.success = false
+									obj.desc = JSON.stringify(erri)
 								} else {
-									resp.write('新增成功')
-									resp.end()
+									obj.desc = '新增成功'
 								}
 							})
-						}else{
-							cartDB.updateCart(totalQuery, (err, results) => {
-								if (err) {
-									resp.write('添加失败')
-									resp.write(JSON.stringify(err))
-									resp.end()
+						} else {
+							cartDB.updateCart(totalQuery, (erru, resultsu) => {
+								if (erru) {
+									obj.success = false
+									obj.desc = JSON.stringify(erru)
 								} else {
-									resp.write('添加成功')
-									resp.end()
+									obj.desc = '新增成功'
 								}
 							})
 						}
-						
 					}
+					resp.write(JSON.stringify(obj))
+					resp.end()
 				})
 			})
 			break
@@ -360,13 +453,17 @@ let server = http.createServer((req, resp) => {
 				totalQuery = buffer
 				totalQuery = querystring.parse(totalQuery)
 				cartDB.deleteCart(totalQuery, (err, results) => {
-					if (err) {
-						resp.write('删除失败')
-						resp.write(JSON.stringify(err))
-					} else {
-						resp.write('删除成功')
-						resp.end()
+					let obj = {
+						success: true,
+						data: '',
+						desc: '删除成功'
 					}
+					if (err) {
+						obj.success = false
+						obj.desc = JSON.stringify(err)
+					}
+					resp.write(JSON.stringify(obj))
+					resp.end()
 				})
 			})
 			break

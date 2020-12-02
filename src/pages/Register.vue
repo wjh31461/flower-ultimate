@@ -71,34 +71,10 @@
 		<!-- 设置支付密码 -->
 		<el-dialog
 			:title="paycode.status === 1 ? '请输入支付密码' : '请确认支付密码'"
-			:visible.sync="paycode.visible"
+			:visible.sync="paycodeVisible"
 			:close-on-press-escape='false'
 			>
-			<!-- 显示 -->
-			<el-row class='paycode'>
-			  <el-col :span="4" v-for='i in 6' :key='i'>
-			  	{{paycode['paycode' + paycode.status][i - 1] !== undefined ? '*' : undefined}}
-			  </el-col>
-			</el-row>
-			<!-- 输入 -->
-			<el-row v-for='(row, indexR) in [1, 2, 3]' :key='indexR'>
-			  <el-col :span="8" v-for='(col, indexC) in [1, 2, 3]' :key='indexC'>
-			  	<div class='paycodeNum' @click='addPaycode(indexR * 3 + (indexC + 1))'>{{indexR * 3 + (indexC + 1)}}</div>
-			  </el-col>
-			</el-row>
-			<el-row>
-			  <el-col :span="8">
-			  	<div class='paycodeNum' @click='deletePaycode()'>
-			  		<i class="el-icon-back"></i>
-			  	</div>
-			  </el-col>
-			  <el-col :span="8">
-			  	<div class='paycodeNum' @click='addPaycode(0)'>0</div>
-			  </el-col>
-			  <el-col :span="8">
-			  	<div class='paycodeNum' @click='paycodeStatusChange()'>确定</div>
-			  </el-col>
-			</el-row>
+			<paycode ref='paycode' @ok='paycodeStatusChange' @paycode-back='paycodeBack'></paycode>
 		  <span slot="footer" class="dialog-footer">
 		  </span>
 		</el-dialog>
@@ -107,12 +83,9 @@
 
 <script>
 import axios from '@/http/axios'
-import slider from '@/components/slider.vue'
 export default {
 	name: 'register',
-	components: {
-		slider
-	},
+	components: {},
 	data () {
 		var validSlider = (rule, value, callback) => {
 			if (!this.user.pass) {
@@ -160,7 +133,10 @@ export default {
 			
 			// 校验规则
 			rules: {
-				telephone: [{ required: true, min: 11, max: 11, message: '请输入11位手机号', trigger: 'blur' }],
+				telephone: [
+					{ required: true, message: '请输入11位手机号' },
+					{ pattern: /^1(3|4|5|7|8)\d{9}$/, message: '请输入正确的手机号格式' }
+				],
 				pass: [{ required: true, validator: validSlider }],
 				securityCode: [{ required: true, validator: validSecurityCode }],
 
@@ -188,11 +164,12 @@ export default {
 			countdown: 30,
 			interval: null,
 			loading: false,
+
+			paycodeVisible: false,
 			paycode: {
-				visible: false,
-				status: 1,	// 1/2
-				paycode1: [],
-				paycode2: []
+				status: 1,	// 1 -> 输入密码 2 -> 确认密码
+				code1: [],
+				code2: []
 			},
 			backCount: 5,
 			backInterval: null
@@ -239,11 +216,11 @@ export default {
 					this.$refs.userForm.validate((valid) => {
 						console.log(valid)
 						if (valid) {
+							this.paycodeVisible = true
 							this.paycode = {
-								visible: true,
 								status: 1,
-								paycode1: [],
-								paycode2: []
+								code1: [],
+								code2: []
 							}
 						}
 					})
@@ -296,62 +273,54 @@ export default {
 		},
 
 		// -------------------------------第三步 用户信息-------------------------------
-		deletePaycode () {
-			this.paycode['paycode' + this.paycode.status].pop()
-		},
-		addPaycode (code) {
+		// 支付密码 确定
+		async paycodeStatusChange (paycode) {
 			let status = this.paycode.status
 			if (status === 1) {
-				if (this.paycode.paycode1.length < 6) {
-					this.paycode.paycode1.push(code)
-				}
+				this.paycode.code1 = paycode
+				this.paycode.status = 2
 			}
 			if (status === 2) {
-				if (this.paycode.paycode2.length < 6) {
-					this.paycode.paycode2.push(code)
+				this.paycode.code2 = paycode
+				if (this.paycode.code1.join('') !== this.paycode.code2.join('')) {
+					this.$message.warning('两次输入密码不一致')
+					return false
 				}
-			}
-		},
-		async paycodeStatusChange () {
-			let status = this.paycode.status
-			if (status === 1) {
-				if (this.paycode.paycode1.length === 6) {
-					this.paycode.status = 2
-				} else {
-					this.$message.warning('请输入6位支付密码')
-				}
-			}
-			if (status === 2) {
-				if (this.paycode.paycode2.length === 6) {
-					if (this.paycode.paycode1.join('') !== this.paycode.paycode2.join('')) {
-						this.$message.warning('两次输入密码不一致')
-					} else {
-						this.user.paycode = this.paycode.paycode2.join('')
-						this.paycode.visible = false
-						this.loading = true
-						// 调接口注册
-						let { data: res } = await this.submitForm()
-						if (res.success) {
-							this.active = 3
-							this.$message({
-								message: '注册成功！',
-								type: 'success'
-							})
-							// 5s后返回首页
-							let that = this
-							this.backInterval = setInterval(() => {
-								that.backCount--
-								if (that.backCount === 0) {
-									clearInterval(that.backInterval)
-									that.backCount = 5
-									that.$router.push('/')
-								}
-							}, 1000)
+				this.user.paycode = this.paycode.code2.join('')
+				this.paycodeVisible = false
+				this.loading = true
+				// 调接口注册
+				let { data: res } = await this.submitForm()
+				if (res.success) {
+					this.active = 3
+					this.$message({
+						message: '注册成功！',
+						type: 'success'
+					})
+					// 5s后返回首页
+					let that = this
+					this.backInterval = setInterval(() => {
+						that.backCount--
+						if (that.backCount === 0) {
+							clearInterval(that.backInterval)
+							that.backCount = 5
+							that.$router.push('/')
 						}
-					}
-				} else {
-					this.$message.warning('请再次输入6位支付密码')
+					}, 1000)
 				}
+			}
+		},
+		paycodeBack () {
+			let status = this.paycode.status
+			if (status === 1) {
+				this.paycode.code1 = []
+				this.paycode.code2 = []
+				return false
+			}
+			if (status === 2) {
+				this.paycode.code1 = []
+				this.paycode.code2 = []
+				this.paycode.status = 1
 			}
 		},
 
@@ -410,25 +379,5 @@ export default {
 	.register-msg .register-form .register-success {
 		text-align: center;
 		font-size: 16px;
-	}
-
-	.paycode {
-		height: 40px;
-		line-height: 40px;
-		text-align: center;
-		border: 1px solid #eee;
-		border-radius: 5px;
-		margin-bottom: 15px;
-	}
-	.paycodeNum {
-		height: 40px;
-		text-align: center;
-		line-height: 40px;
-		background: #eee;
-		cursor: pointer;
-		user-select: none;
-	}
-	.paycodeNum:hover {
-		background: #ccc;
 	}
 </style>

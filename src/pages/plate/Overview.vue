@@ -3,7 +3,7 @@
 		<div class="content">
     	<div class="wrapper plate-content-wrapper">
     		<ul>
-    			<li v-for='msg in platemsg'>
+    			<li v-for='msg in comList'>
             <div class="plate-img">
               <router-link :to='{path:"/plate/commodity", query: { id: msg.id }}'>
                 <img :src="msg.src" alt="">
@@ -30,19 +30,19 @@ export default {
   data () {
     return {
       query: {},
-      platemsg: []
+      comList: []
     }
   },
   watch: {
     '$route.query': function () {
+      this.query = this.$route.query
       this.getCommodityTypeOrKey()
     }
   },
   methods: {
     // 根据路由获取query中的type
     getCommodityTypeOrKey () {
-      let type = this.query.type
-      let key = this.query.key
+      let { type, key } = this.query
       if (type) {
         this.findCommodityByType(type)
       } else if (key) {
@@ -53,8 +53,12 @@ export default {
     },
     findAllCommodity () {
       axios.get('/commodity/findAllCommodity')
-      .then(({ data: results }) => {
-        this.platemsg = results
+      .then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
+        }
+        this.comList = res.data.data
       })
       .catch(() => {
         this.$message.error('查询失败')
@@ -62,26 +66,33 @@ export default {
     },
     // 根据type查询数据
     findCommodityByType (type) {
-      axios.get('/commodity/findCommodityByType?type=' + type)
-      .then(({ data: results }) => {
-        this.platemsg = results
-        if (this.platemsg.length == 0) {
-          this.$message.error('商品不存在')
-        } else {
-          this.$message.success('查询成功')
+      let params = {
+        type
+      }
+      axios.get('/commodity/findCommodityByType', { params })
+      .then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
         }
+        this.comList = res.data.data
+      })
+      .catch(() => {
+        this.$message.error('查询失败')
       })
     },
     // 根据key查询数据
     findCommodityByKey (key) {
-      axios.get('/commodity/findCommodityByKey?key=' + key)
-      .then(({ data: results }) => {
-        this.platemsg = results
-        if (this.platemsg.length == 0) {
-          this.$message.error('商品不存在')
-        } else {
-          this.$message.success('查询成功')
+      let params = {
+        key
+      }
+      axios.get('/commodity/findCommodityByKey', { params })
+      .then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
         }
+        this.comList = res.data.data
       })
     }
   },

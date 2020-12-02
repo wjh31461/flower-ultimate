@@ -6,10 +6,14 @@ let findAllCommodity = (handle) => {
 		if (!err) {
 			connection.query('select * from commodity_msg', [], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -20,10 +24,14 @@ let findCommodityById = (id, handle) => {
 		if (!err) {
 			connection.query('select * from commodity_msg where id=?', [id], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -34,10 +42,14 @@ let findCommodityByType = (type, handle) => {
 		if (!err) {
 			connection.query('select * from commodity_msg where id like "' + type + '%"', [type], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -48,10 +60,14 @@ let findCommodityByKey = (key, handle) => {
 		if (!err) {
 			connection.query('select * from commodity_msg where name like "%' + key + '%" or material like "%' + key + '%" ', [key], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -61,13 +77,17 @@ let findCommodityByIds = (ids, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
 			// console.log(ids)//[ '300', '308', '304' ]
-			let aa = '(' + ids + ')'
-			connection.query("select * from commodity_msg where id in" + aa + "", ids, (err, results, fields) => {
+			let str = '(' + ids + ')'
+			connection.query("select * from commodity_msg where id in" + str + "", ids, (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }

@@ -13,6 +13,25 @@ Vue.use(ElementUI);
 
 Vue.config.productionTip = false
 
+// 自动化注册引入组件
+const requireComponent = require.context(
+  '.',
+  true,
+  /\.vue$/
+)
+requireComponent.keys().forEach((fileName) => {
+  const componentConfig = requireComponent(fileName)
+  const componentName = fileName
+    .replace(/^\.\//, '')
+    .replace(/\.\w+$/, '')
+    .split('/')
+    .pop()
+    .split('-')
+    .map((kebab) => kebab.charAt(0).toUpperCase() + kebab.slice(1))
+    .join('')
+  Vue.component(componentName, componentConfig.default || componentConfig)
+})
+
 /* eslint-disable no-new */
 var vm=new Vue({
   el: '#app',

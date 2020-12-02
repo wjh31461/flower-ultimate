@@ -3,11 +3,11 @@ s<template>
     <div class="nav">
       <div class="wrapper nav-wrapper">
         <span>全部商品导购</span>
-        <router-link to='/plate/overview?key=鲜花'>鲜花</router-link>
-        <router-link to='/plate/overview?type=5'>永生花</router-link>
-        <router-link to='/plate/overview?key=玫瑰'>玫瑰花</router-link>
-        <router-link to='/plate/overview?type=6'>绿植盆栽</router-link>
-        <router-link to='/plate/overview?type=3'>七夕情人节鲜花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { key: "鲜花" }}'>鲜花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { type: "5" }}'>永生花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { key: "玫瑰" }}'>玫瑰花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { type: "6" }}'>绿植盆栽</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { type: "3" }}'>七夕情人节鲜花</router-link>
       </div>
     </div>
     
@@ -17,30 +17,30 @@ s<template>
           <div class="left-nav-variety">
             <div class="title">鲜花品种</div>
             <ul>
-              <li><router-link to='/plate/overview?key=玫瑰'>玫瑰</router-link></li>
-              <li><router-link to='/plate/overview?key=百合'>百合</router-link></li>
-              <li><router-link to='/plate/overview?key=紫罗兰'>紫罗兰</router-link></li>
-              <li><router-link to='/plate/overview?key=向日葵'>向日葵</router-link></li>
-              <li><router-link to='/plate/overview?key=康乃馨'>康乃馨</router-link></li>
-              <li><router-link to='/plate/overview?key=郁金香'>郁金香</router-link></li>
-              <li><router-link to='/plate/overview?key=马蹄莲'>马蹄莲</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "玫瑰" }}'>玫瑰</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "百合" }}'>百合</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "紫罗兰" }}'>紫罗兰</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "向日葵" }}'>向日葵</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "康乃馨" }}'>康乃馨</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "郁金香" }}'>郁金香</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "马蹄莲" }}'>马蹄莲</router-link></li>
             </ul>
           </div>
           <div class="left-nav-purpose">
             <div class="title">鲜花用途</div>
             <ul>
-              <li><router-link to='/plate/overview?type=3'>爱情鲜花</router-link></li>
-              <li><router-link to='/plate/overview?type=4'>送长辈鲜花</router-link></li>
-              <li><router-link to='/plate/overview?key=永恒'>婚庆鲜花</router-link></li>
-              <li><router-link to='/plate/overview?key=海洋之心'>商务鲜花</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { type: "3" }}'>爱情鲜花</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { type: "4" }}'>送长辈鲜花</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "永恒" }}'>婚庆鲜花</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "海洋之心" }}'>商务鲜花</router-link></li>
             </ul>
           </div>
           <div class="left-nav-type">
             <div class="title">鲜花类别</div>
             <ul>
-              <li><router-link to='/plate/overview?key=开业'>开业花篮</router-link></li>
-              <li><router-link to='/plate/overview?type=5'>永生花</router-link></li>
-              <li><router-link to='/plate/overview?type=6'>办公室盆栽</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { key: "开业" }}'>开业花篮</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { type: "5" }}'>永生花</router-link></li>
+              <li><router-link :to='{ path: "/plate/overview", query: { type: "6" }}'>办公室盆栽</router-link></li>
             </ul>
           </div>
         </div>
@@ -167,7 +167,7 @@ s<template>
         <div class="thanks-content">
           <ul>
             <li>
-              <router-link :to="{ path: '/plate/overview', query: {type: 4} }">
+              <router-link :to="{ path: '/plate/overview', query: { type: '4' } }">
                 <div class="thanks-left-img">
                   <img src="static/thanks.jpeg" alt="">
                 </div>
@@ -178,13 +178,13 @@ s<template>
             </li>
             <li v-for='msg in thanksmsg'>
               <div class="thanks-img">
-                <router-link :to='{ path: "/plate/commodity", query: { id: msg.id }}'>
+                <router-link :to='{ path: "/plate/commodity", query: { id: msg.id } }'>
                   <img :src="msg.src" alt="">
                 </router-link>
               </div>
               <div class="thanks-msg">
                 <div class="thanks-msg-title">
-                  <router-link :to='{ path: "/plate/commodity", query: { id: msg.id }}'>{{msg.title}}</router-link>
+                  <router-link :to='{ path: "/plate/commodity", query: { id: msg.id }}'>{{msg.name}}</router-link>
                 </div>
                 <div class="thanks-msg-price">
                   <span>￥{{msg.pricel}}</span>
@@ -203,7 +203,7 @@ s<template>
         <div class="immortal-content">
           <ul>
             <li>
-              <router-link :to="{ path: '/plate/overview', query: { type: 5 }}">
+              <router-link :to="{ path: '/plate/overview', query: { type: '5' }}">
                 <div class="immortal-left-img">
                   <img src="static/immortal.jpeg" alt="">
                 </div>
@@ -220,7 +220,7 @@ s<template>
               </div>
               <div class="immortal-msg">
                 <div class="immortal-msg-title">
-                  <router-link :to='{ path: "/plate/commodity", query: { id: msg.id }}'>{{msg.title}}</router-link>
+                  <router-link :to='{ path: "/plate/commodity", query: { id: msg.id }}'>{{msg.name}}</router-link>
                 </div>
                 <div class="immortal-msg-price">
                   <span>￥{{msg.pricel}}</span>
@@ -271,14 +271,18 @@ export default {
     },
     getHotMsg () {
       let params = {
-        ids: ['500', '302', '405', '501', '400']
+        ids: JSON.stringify(['500', '302', '405', '501', '400'])
       }
       axios({
         url: '/commodity/findCommodityByIds',
         method: 'POST',
         data: params
-      }).then((res) => {
-        this.hotmsg = res.data
+      }).then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
+        }
+        this.hotmsg = res.data.data
         this.hotmsg.forEach((item, index) => {
           switch (index) {
             case 0:
@@ -302,14 +306,18 @@ export default {
     },
     getTimeLimit () {
       let params = {
-        ids: ['20', '506', '308', '401', '309']
+        ids: JSON.stringify(['20', '506', '308', '401', '309'])
       }
       axios({
         url: '/commodity/findCommodityByIds',
         method: 'POST',
         data: params
-      }).then((res) => {
-        this.timelimit = res.data
+      }).then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
+        }
+        this.timelimit = res.data.data
         this.timelimit.forEach((item, index) => {
           switch (index) {
             case 0:
@@ -333,38 +341,50 @@ export default {
     },
     getLoveMsg () {
       let params = {
-        ids: ['300', '301', '302', '303', '304', '305', '306', '307']
+        ids: JSON.stringify(['300', '301', '302', '303', '304', '305', '306', '307'])
       }
       axios({
         url: '/commodity/findCommodityByIds',
         method: 'POST',
         data: params
-      }).then((res) => {
-        this.lovemsg = res.data
+      }).then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
+        }
+        this.lovemsg = res.data.data
       })
     },
     getThanksMsg () {
       let params = {
-        ids: ['400', '401', '402', '403', '404', '405', '406', '407']
+        ids: JSON.stringify(['400', '401', '402', '403', '404', '405', '406', '407'])
       }
       axios({
         url: '/commodity/findCommodityByIds',
         method: 'POST',
         data: params
-      }).then((res) => {
-        this.thanksmsg = res.data
+      }).then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
+        }
+        this.thanksmsg = res.data.data
       })
     },
     getImmortalMsg () {
       let params = {
-        ids: ['500', '501', '502', '503', '504', '505', '506', '507']
+        ids: JSON.stringify(['500', '501', '502', '503', '504', '505', '506', '507'])
       }
       axios({
         url: '/commodity/findCommodityByIds',
         method: 'POST',
         data: params
-      }).then((res) => {
-        this.immortalmsg = res.data
+      }).then(res => {
+        if (!res.data.success) {
+          this.$message.error(res.data.desc)
+          return false
+        }
+        this.immortalmsg = res.data.data
       })
     }
   },

@@ -4,10 +4,13 @@
 			<div class="cart-commodity">
 				<el-table
 					ref="multipleTable"
-					:data="msg"
+					:data="tableList"
+					v-loading='loading'
 					tooltip-effect="dark"
+					empty-text='购物车空空如也'
+					@selection-change="handleSelectionChange"
 					style="width: 100%;"
-					@selection-change="handleSelectionChange">
+					>
 					<el-table-column
 						type="selection"
 						width="55">
@@ -16,8 +19,8 @@
 						label="商品信息"
 						width="343">
 						<template slot-scope='{row}'>
-							<img :src="row.src">
-							<span style='position: relative; bottom: 40px;'>{{row.name}}</span>
+							<img :src="row.src" @click='viewComDetail(row)' style='cursor: pointer;'>
+							<span style='position: relative; bottom: 40px;'>{{row.commodityName}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column
@@ -33,9 +36,9 @@
 						width="200"
 						align='center'>
 						<template slot-scope='{row}'>
-							<el-button icon='el-icon-minus' @click='minus(row)'></el-button>
+							<el-button icon='el-icon-minus' :disabled='row.number === 1' @click='minus(row)'></el-button>
 							<span>{{row.number}}</span>
-							<el-button icon='el-icon-plus' @click='plus(row)'></el-button>
+							<el-button icon='el-icon-plus' :disabled='row.number === 99' @click='plus(row)'></el-button>
 						</template>
 					</el-table-column>
 					<el-table-column
@@ -51,20 +54,19 @@
 						width='200'
 						align='center'>
 						<template slot-scope='{row}'>
-							<span @click='deletecommodity(row)'>删除</span>
-							<!-- 此处应为row.id -->
+							<span @click='deleteCommodity(row)' style='color: red;'>删除</span>
 						</template>
 					</el-table-column>
 				</el-table>
 
 				<div class="cart-pay">
 					<div class="cart-total">
-						<span>共{{msg.length}}件商品，已选择{{multipleSelection.length}}件</span>
+						<span>共{{tableList.length}}件商品，已选择{{multipleSelection.length}}件</span>
 						<span>总计：</span>
 						<span>￥{{total_price}}</span>
 					</div>
 					<div class="cart-gopay">
-						<el-button @click='gopay'>下 单</el-button>
+						<el-button @click='gopay()'>下 单</el-button>
 					</div>
 				</div>
 			</div>
@@ -74,25 +76,10 @@
 
 <script>
 import axios from '@/http/axios'
+import { mapState } from 'vuex'
 export default {
-	props: ['usermsg'],
 	data(){
 		return {
-			// 商品信息
-			/*commodity:[{
-				id:'300',
-				name:'一心一意',
-				pricel:'138',
-				src:'/static/love-1/300.jpg',
-				number:'2'
-			},{
-				id:'307',
-				name:'致青春',
-				pricel:'229',
-				src:'/static/love-8.jpg',
-				number:'1'
-			}],*/
-
 			// 去支付模态框
 			pay: {
 				visible: false
@@ -100,14 +87,19 @@ export default {
 			paynow: {
 				visible: false
 			},
+			loading: false,
 			
 			multipleSelection: [],
 			cart: [],
 			commodity: [],
-			msg: []
+			tableList: [],
+			commodityIds: []
 		}
 	},
 	computed:{
+		...mapState({
+			userMsg: state => state.userMsg
+		}),
 		total_price () {
 			// 计算总价
 			let total = 0
@@ -119,152 +111,209 @@ export default {
 		commodity_price () {
 			// 计算单个商品价格
 			let price = 0
-			this.msg.forEach(item => {
+			this.tableList.forEach(item => {
 				price = Number(item.pricel) * Number(item.number)
 			})
 			return price
 		}
 	},
 	watch: {
-		'$parent.usermsg.form.username': function () {
-			if (!this.$parent.usermsg.form.username){
+		'userMsg.username': function (val) {
+			if (!val) {
 				this.$router.push('/')
+			}
+		},
+		userMsg: async function (val) {
+			if (val) {
+				this.findTableData()
 			}
 		}
 	},
-	created () {
-		this.findCartByUsername()
-	},
-	mounted () {
-		// this.$router.push('/')
+	async created () {
+		this.findTableData()
 	},
 	methods: {
-		findCartByUsername () {
-			this.msg = []
+		// 查数据
+		async findTableData () {
+			this.loading = true
+			await this.findCartByUsername()
+			await this.findCommodityByIds(this.commodityIds)
+			this.loading = false
+		},
+		// 根据用户名查购物车信息
+		async findCartByUsername () {
+			if (!this.userMsg.username) {
+				return false
+			}
+			
+			this.tableList = []
 			this.cart = []
 			this.commodity = []
-			axios.get('/cart/findCartByUsername?username=' + this.$route.query.username)
-			.then(({ data: results })=>{
-				this.$message.success('购物车信息查询成功')
-				this.cart = results
-				let ids = this.cart.map(item => {
+			let params = {
+				username: this.userMsg.username
+			}
+			await axios.get('/cart/findCartByUsername', { params })
+			.then(res => {
+				if (!res.data.success) {
+					this.$message.error(res.data.desc)
+					return false
+				}
+
+				this.cart = res.data.data
+				let ids = this.cart.map((item) => {
 					return item.id
 				})
-				this.findCommodityByIds(ids)
+				this.commodityIds = [...new Set(ids)]
 			})
 			.catch(() => {
-				this.$message.error('购物车查询错误')
+				this.$message.error('购物车查询失败')
 			})
 		},
-		findCommodityByIds (ids) {
-			// console.log({ids})//{ids:['300','304','308']}
-			if (ids.length == 1) {
-				axios.get('/commodity/findCommodityById?id=' + ids[0])
-				.then(({ data: results })=>{
-					this.$message.success('id查询成功')
-					this.commodity = results
-					let obj = {
-							id: this.cart[0].id,
-							name: this.commodity[0].name,
-							pricel: this.commodity[0].pricel,
-							src: this.commodity[0].src,
-							number: this.cart[0].number
-					}
-					this.msg.push(obj)
+		// 查询商品信息
+		async findCommodityByIds (ids) {
+			if (!ids.length) {
+				return false
+			}
+			
+			let params
+			let res
+			if (ids.length === 1) {
+				params = { id: ids[0] }
+				res = await axios({
+					method: 'GET',
+					url: '/commodity/findCommodityById',
+					params
 				})
 			} else {
-				axios.post('/commodity/findCommodityByIds', { ids })
-				.then(({ data: results })=>{
-					this.$message.success('ids查询成功')
-					this.commodity = results
-					
-					for(let i = 0; i < this.cart.length; i++){
-						let obj = {
-							id: this.cart[i].id,
-							name: this.commodity[i].name,
-							pricel: this.commodity[i].pricel,
-							src: this.commodity[i].src,
-							number: this.cart[i].number
-						}
-						this.msg.push(obj)
-					}
-				})
-				.catch(() => {
-					this.$message.error('ids查询失败')
+				params = { ids: JSON.stringify(ids) }
+				res = await axios({
+					method: 'POST',
+					url: '/commodity/findCommodityByIds',
+					data: params
 				})
 			}
+
+			if (!res.data.success) {
+				this.$message.error(res.data.desc)
+				return false
+			}
+
+			this.commodity = res.data.data
+			this.generateTableData()
 		},
+		// 处理列表数据
+		generateTableData () {
+			this.cart.forEach(cart => {
+				this.commodity.forEach(com => {
+					if (cart.id === com.id) {
+						let obj = _.cloneDeep(cart)
+						obj.src = com.src
+						obj.commodityName = com.name
+						obj.pricel = com.pricel
+						this.tableList.push(obj)
+					}
+				})
+			})
+		},
+
 		handleSelectionChange (val) {
 			this.multipleSelection = val
 		},
 		minus (row) {
-			if(row.number > 1 && row.number <= 99){
-				row.number--
+			if (row.number > 1 && row.number <= 99) {
 				let obj = {
-					username: this.$parent.usermsg.form.username,
+					username: this.userMsg.username,
 					id: row.id
 				}
 				axios.post('/cart/reduceCartNumber', obj)
-				.then(() => {
-					this.$message.success('减少成功')
+				.then(res => {
+					if (!res.data.success) {
+						this.$message.error(res.data.desc)
+						return false
+					}
+					this.findTableData()
 				})
 				.catch(() => {
-					this.$message.warning('减少失败')
+					this.$message.warning('minus失败')
 				})
 			}
 		},
 		plus (row) {
-			if(row.number >= 1 && row.number < 99){
-				row.number++
+			if (row.number >= 1 && row.number < 99) {
 				let obj = {
-					username: this.$parent.usermsg.form.username,
+					username: this.userMsg.username,
 					id: row.id
 				}
-				debugger
 				axios.post('/cart/addCartNumber', obj)
-				.then(() => {
-					this.$message.success('增加成功')
+				.then(res => {
+					if (!res.data.success) {
+						this.$message.error(res.data.desc)
+						return false
+					}
+					this.findTableData()
 				})
 				.catch(() => {
-					this.$message.warning('增加失败')
+					this.$message.warning('plus失败')
 				})
 			}
 		},
 		// 去支付
 		gopay () {
-			if (this.multipleSelection.length == 0) {
+			if (!this.multipleSelection.length) {
 				this.$message.warning('请选择商品')
 			} else {
-				let arr = []	//arr中包含商品的id和number
-				this.multipleSelection.forEach(item => {
-					arr.push({ id: item.id, number: item.number })
+				// payMsg中包含商品的id和number
+				let payMsg = this.multipleSelection.map(item => {
+					return {
+						id: item.id,
+						number: item.number
+					}
 				})
 				this.$router.push({
 					path: '/plate/pay',
-					query: {
-						id: arr
+					name: 'pay',
+					params: {
+						payMsg
 					}
 				})
 			}
 		},
-		deletecommodity (row) {
+		// 删除商品
+		deleteCommodity (row) {
 			this.$confirm('确认删除商品？', '提示', {
 				confirmButtonText: '确定',
 				cancelButtonText: '取消',
 				type: 'warning'
 			}).then(() => {
-				let obj = {
-					username: this.$parent.usermsg.form.username,
+				let data = {
+					username: this.userMsg.username,
 					id: row.id
 				}
-				axios.post('/cart/deleteCart', obj)
-				.then(() => {
-					this.$message.success('删除成功')
-					this.findCartByUsername()
+				axios({
+					method: 'POST',
+					url: '/cart/deleteCart',
+					data
+				})
+				// axios.post('/cart/deleteCart', obj)
+				.then(res => {
+					if (!res.data.success) {
+						this.$message.error(res.data.desc)
+					}
+					this.findTableData()
 				})
 				.catch(() => {
 					this.$message.error('删除失败')
 				})
+			})
+			.catch(() => {})
+		},
+		// 查看商品详情
+		viewComDetail (detail) {
+			this.$router.push({
+				path: '/plate/commodity',
+				query: {
+					id: detail.id
+				}
 			})
 		}
 	}

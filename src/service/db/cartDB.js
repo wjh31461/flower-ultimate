@@ -4,12 +4,16 @@ let pool = require('./pool')
 let findCartByUsername = (username, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('select * from cart where username=?', [username], (err, results, fields) => {
+			connection.query('select * from cart where username = ?', [username], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -18,12 +22,16 @@ let findCartByUsername = (username, handle) => {
 let judgeCart = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('select count(*) count from cart where username=? and id=?', [obj.username, obj.id], (err, results, fields) => {
+			connection.query('select count(*) count from cart where username = ? and id = ?', [obj.username, obj.id], (err, results, fields) => {
 				if (!err) {
-					handle(err,results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -32,12 +40,16 @@ let judgeCart = (obj, handle) => {
 let insertCart = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('insert into cart values(?,?,?)', [obj.username, obj.id, obj.number], (err, results, fields) => {
+			connection.query('insert into cart (username, id, number) values(?, ?, ?)', [obj.username, obj.id, obj.number], (err, results, fields) => {
 				if (!err) {
-					handle(err,results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -46,12 +58,16 @@ let insertCart = (obj, handle) => {
 let updateCart = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('update cart set number=number+? where username=? and id=?', [obj.number, obj.username, obj.id], (err, results, fields) => {
+			connection.query('update cart set number = number + ? where username = ? and id = ?', [obj.number, obj.username, obj.id], (err, results, fields) => {
 				if (!err) {
 					handle(err,results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -60,13 +76,16 @@ let updateCart = (obj, handle) => {
 let addCartNumber = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			console.log(obj)
-			connection.query('update cart set number=number+1 where username=? and id=?', [obj.username, obj.id], (err, results, fields) => {
+			connection.query('update cart set number = number + 1 where username = ? and id = ?', [obj.username, obj.id], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -75,12 +94,16 @@ let addCartNumber = (obj, handle) => {
 let reduceCartNumber = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('update cart set number=number-1 where username=? and id=?', [obj.username, obj.id], (err, results, fields) => {
+			connection.query('update cart set number = number - 1 where username = ? and id = ?', [obj.username, obj.id], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -89,12 +112,16 @@ let reduceCartNumber = (obj, handle) => {
 let deleteCart = (obj,handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('delete from cart where username=? and id=?', [obj.username, obj.id], (err, results, fields) => {
+			connection.query('delete from cart where username = ? and id = ?', [obj.username, obj.id], (err, results, fields) => {
 				if (!err) {
 					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }

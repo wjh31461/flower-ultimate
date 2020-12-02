@@ -12,6 +12,8 @@ let findPhone = (telephone, handle) => {
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -28,6 +30,8 @@ let findUsername = (username, handle) => {
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -38,10 +42,14 @@ let findUser = (username, handle) => {
 		if (!err) {
 			connection.query('select * from user where username=?', [username], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -71,6 +79,8 @@ let updateUser = (obj, handle) => {
 					(err, results, fields) => {
 					if (!err) {
 						handle(err, results)
+					} else {
+						handle(err)
 					}
 				})
 			} else {
@@ -80,10 +90,14 @@ let updateUser = (obj, handle) => {
 					(err, results, fields) => {
 					if (!err) {
 						handle(err, results)
+					} else {
+						handle(err)
 					}
 				})
 			}
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -94,10 +108,14 @@ let insertUser = (obj, handle) => {
 		if (!err) {
 			connection.query('insert into user(username, aliase, password, paycode, nickname, telephone) value(?,?,?,?,?,?)', [obj.username, obj.aliase, obj.password, obj.paycode, obj.nickname, obj.telephone], (err, results, fields) => {
 				if (!err) {
-					handle(err,results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }

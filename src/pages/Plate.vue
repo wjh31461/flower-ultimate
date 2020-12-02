@@ -3,44 +3,44 @@
 		<div class="plate-nav">
       <div class="wrapper plate-nav-wrapper">
         <div class="platenav-title">
-        	<span>全部商品导购<i class="fa fa-angle-down"></i></span>
+        	<span>全部商品导购</span>
 					<div class="platenav-block">
 	          <div class="platenav-block-variety">
 	            <div class="title">鲜花品种</div>
 	            <ul>
-                <li><router-link to='/plate/overview?key=玫瑰'>玫瑰</router-link></li>
-                <li><router-link to='/plate/overview?key=百合'>百合</router-link></li>
-                <li><router-link to='/plate/overview?key=紫罗兰'>紫罗兰</router-link></li>
-                <li><router-link to='/plate/overview?key=向日葵'>向日葵</router-link></li>
-                <li><router-link to='/plate/overview?key=康乃馨'>康乃馨</router-link></li>
-                <li><router-link to='/plate/overview?key=郁金香'>郁金香</router-link></li>
-                <li><router-link to='/plate/overview?key=马蹄莲'>马蹄莲</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "玫瑰" }}'>玫瑰</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "百合" }}'>百合</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "紫罗兰" }}'>紫罗兰</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "向日葵" }}'>向日葵</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "康乃馨" }}'>康乃馨</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "郁金香" }}'>郁金香</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "马蹄莲" }}'>马蹄莲</router-link></li>
               </ul>
 	          </div>
 	          <div class="platenav-block-purpose">
 	            <div class="title">鲜花用途</div>
 	            <ul>
-                <li><router-link to='/plate/overview?type=3'>爱情鲜花</router-link></li>
-                <li><router-link to='/plate/overview?type=4'>送长辈鲜花</router-link></li>
-                <li><router-link to='/plate/overview?key=永恒'>婚庆鲜花</router-link></li>
-                <li><router-link to='/plate/overview?key=海洋之心'>商务鲜花</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { type: "3" }}'>爱情鲜花</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { type: "4" }}'>送长辈鲜花</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "永恒" }}'>婚庆鲜花</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "海洋之心" }}'>商务鲜花</router-link></li>
               </ul>
 	          </div>
 	          <div class="platenav-block-type">
 	            <div class="title">鲜花类别</div>
 	            <ul>
-                <li><router-link to='/plate/overview?key=开业'>开业花篮</router-link></li>
-                <li><router-link to='/plate/overview?type=5'>永生花</router-link></li>
-                <li><router-link to='/plate/overview?type=6'>办公室盆栽</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { key: "开业" }}'>开业花篮</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { type: "5" }}'>永生花</router-link></li>
+                <li><router-link :to='{ path: "/plate/overview", query: { type: "6" }}'>办公室盆栽</router-link></li>
               </ul>
 	          </div>
 	      	</div>
         </div>
-        <router-link to='/plate/overview?key=鲜花'>鲜花</router-link>
-        <router-link to='/plate/overview?type=5'>永生花</router-link>
-        <router-link to='/plate/overview?key=玫瑰'>玫瑰花</router-link>
-        <router-link to='/plate/overview?type=6'>绿植盆栽</router-link>
-        <router-link to='/plate/overview?type=3'>七夕情人节鲜花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { key: "鲜花" }}'>鲜花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { type: "5" }}'>永生花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { key: "玫瑰" }}'>玫瑰花</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { type: "6" }}'>绿植盆栽</router-link>
+        <router-link :to='{ path: "/plate/overview", query: { type: "3" }}'>七夕情人节鲜花</router-link>
       </div>
     </div>
     <router-view></router-view>

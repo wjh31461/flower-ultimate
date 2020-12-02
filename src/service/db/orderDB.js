@@ -4,12 +4,16 @@ let pool = require('./pool')
 let findOrderByUsername = (username, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('select * from `order` where username=?', [username], (err, results, fields) => {
+			connection.query('select * from `order` where username = ?', [username], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err, results)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -18,12 +22,16 @@ let findOrderByUsername = (username, handle) => {
 let deleteOrder = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('delete from `order` where username=? and id=?', [obj.username, obj.id], (err, results, fields) => {
+			connection.query('delete from `order` where orderId = ? and dealId = ?', [obj.orderId, obj.dealId], (err, results, fields) => {
 				if (!err) {
-					handle(results)
+					handle(err, results)
+				} else {
+					handle(err)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }
@@ -32,12 +40,16 @@ let deleteOrder = (obj, handle) => {
 let insertOrder = (obj, handle) => {
 	pool.getConnection((err, connection) => {
 		if (!err) {
-			connection.query('insert into `order`(username,nickname,telephone,address,id,number) VALUES(?,?,?,?,?,?)', [obj.username, obj.nickname, obj.telephone, obj.address, obj.id, obj.number], (err, results, fields) => {
+			connection.query('insert into `order`(orderId, dealId, username, name, telephone, address, id, number) VALUES(?, ?, ?, ?, ?, ?, ?, ?)', [obj.orderId, obj.dealId, obj.username, obj.name, obj.telephone, obj.address, obj.id, obj.number], (err, results, fields) => {
 				if (!err) {
-					handle(err,results)
+					handle(err, results)
+				} else {
+					handle(err, results)
 				}
 			})
 			connection.release()
+		} else {
+			handle(err)
 		}
 	})
 }

@@ -4,11 +4,11 @@
 			<div class="wrapper commodity-wrapper">
 				<div class="commodity-left">
 					<ul>
-						<li v-for='imgnav in commodity.src'>
-							<img :src="imgnav.src" alt="">
-							<img :src="imgnav.src" alt="">
+						<li v-for='(item, index) in commodity.src' class='imgItem' @click='clickImg(item.src, index)' :class='{ active: item.active }'>
+							<img :src="item.src" alt="">
 						</li>
 					</ul>
+					<img :src="imgSrc" class='bigImg'>
 				</div>
 				<div class="commodity-right">
 					<div class="commodity-name">鲜花花名：{{commodity.name}}</div>
@@ -43,10 +43,10 @@
 						<div class="commodity-buy">
 							<div class="number">
 								<span>数量：</span>
-								<el-input-number v-model="number" @change='handleChange' :precision="0" :min="1" :max="99"></el-input-number>
+								<el-input-number v-model="number" :precision="0" :min="1" :max="99" />
 							</div>
-							<a @click='buy' class="buy">立即购买</a>
-							<a class="addshoppingcart" @click='addshoppingcart'><i class="fa fa-shopping-cart"></i>加入购物车</a>
+							<a @click='buy()' class="buy">立即购买</a>
+							<a class="addshoppingcart" @click='addShoppingcart()'><i class="fa fa-shopping-cart"></i>加入购物车</a>
 						</div>
 					</div>
 				</div>
@@ -57,87 +57,113 @@
 
 <script>
 import axios from '@/http/axios'
+import { mapState, mapGetters } from 'vuex'
+
 export default {
 	props: ['username'],
 	data () {
 		return {
 			commodity: {},
 			src: [{}, {}, {}],
-			number: '1'
+			number: 1,
+			imgSrc: ''
 		}
 	},
 	watch: {},
+	computed: {
+		...mapState({
+			userMsg: state => state.userMsg
+		}),
+		...mapGetters(['getUserMsg'])
+	},
 	created () {
 		this.findCommodityById()
 	},
 	methods: {
-		/*BlurText(e){
-			// 数量限制为正整数
-			let boolean=new RegExp('^[1-9][0-9]*$').test(e.target.value);
-			if(!boolean){
-				this.$message.warning('请输入正整数');
-				e.target.value='1';
-				this.$refs.number.focus();
-			}
-		},*/
 		// 根据id查找商品
-		findCommodityById () {
-			axios.get('/commodity/findCommodityById?id=' + this.$route.query.id)
-			.then(({ data: results }) => {
-				this.commodity = results[0]	//这个没有src[]
-				this.src = [{
-					src: this.commodity.src1
-				},{
-					src: this.commodity.src2
-				},{
-					src: this.commodity.src3
-				}]
+		async findCommodityById () {
+			let params = {
+				id: this.$route.query.id
+			}
+			let { data: res } = await axios({
+				url: '/commodity/findCommodityById',
+				method: 'GET',
+				params
+			})
+			if (res.success) {
+				this.commodity = res.data[0]
+				this.src = [
+					{
+						src: this.commodity.src1,
+						active: true
+					},
+					{ src: this.commodity.src2 },
+					{ src: this.commodity.src3 }
+				]
 				this.commodity.src = this.src
+				this.imgSrc = this.src[0].src
 				this.$message.success('查询成功')
-			})
-			.catch(() => {
-				this.$message.warning('查询失败')
-			})
-		},
-		handleChange (value) {
-			let boolean = new RegExp('^[1-9][0-9]*$').test(value)
-			if (!boolean) {
-				this.$message.warning('请输入正整数')
-			}
-		},
-		// 加入购物车
-		addshoppingcart () {
-			if (this.$parent.$parent.username == undefined || this.$parent.$parent.username == '') {
-				this.$message.warning('请先登录')
 			} else {
-				// 此处加入购物车
-				let obj = {
-					username: this.$parent.$parent.usermsg.form.username,
-					id: this.commodity.id,
-					number: this.number
-				}
-				axios.post('/cart/insertCart', obj)
-				.then(() => {
-					this.$message.success('加入购物车成功')
-				})
-				.catch(() => {
-					this.$message.error('加入购物车失败')
-				})
+				this.$message.warning('查询失败')
 			}
 		},
+		
+		// 点击小图片
+		clickImg (src, index) {
+			this.imgSrc = src
+			this.src = this.src.map(item => {
+				item.active = false
+				return item
+			})
+			this.src[index].active = true
+			this.commodity.src = this.src
+		},
+		
+		// handleChange (value) {
+		// 	let boolean = new RegExp(/^[1-9][0-9]*$/).test(value)
+		// 	// 也可以这样写 let reg = /^[1-9][0-9]*$/ 然后 reg.test(value)
+		// 	if (!boolean) {
+		// 		this.$message.warning('请输入正整数')
+		// 	}
+		// },
+		
+		// 加入购物车
+		async addShoppingcart () {
+			if (!this.userMsg.username) {
+				this.$message.warning('请先登录')
+				return false
+			}
+
+			let data = {
+				username: this.userMsg.username,
+				id: this.commodity.id,
+				number: this.number
+			}
+			let res = await axios.post('/cart/insertCart', data)
+			if (!res.data.success) {
+				this.$message.error(res.data.desc)
+				return false
+			}
+			this.$message.success('加入购物车成功')
+		},
+
 		// 立即购买
 		buy () {
-			if (this.$parent.$parent.username == undefined || this.$parent.$parent.username == '') {
+			if (!this.userMsg.username) {
 				this.$message.warning('请先登录')
-			} else {
-				// 此处跳转到pay页
-				this.$router.push({
-					path: '/plate/pay',
-					query: {
-						id: [{ id: this.commodity.id, number: this.number }]
-					}
-				})
+				return
 			}
+			// 跳转到pay页
+			this.$router.push({
+				path: '/plate/pay',
+				name: 'pay',
+				params: {
+					payMsg: [{
+						id: this.commodity.id,
+						number: this.number
+					}]
+				}
+			})
 		}
 	}
 }
@@ -159,37 +185,27 @@ export default {
 		width: 510px;
 		padding: 20px 40px;
 	}
-	.commodity-left ul > * {
-		float: left;
-		position: relative;
-	}
-	.commodity-left ul > * > img:last-child {
-		width: 430px;
-		height: 470px;
-		position: absolute;
-		top: 105px;
-	}
-	.commodity-left ul > li:nth-child(2) > img:last-child {
-		left: -107px;
-	}
-	.commodity-left ul > li:nth-child(3) > img:last-child {
-		left: -214px;
-	}
-	.commodity-left ul > * > img:first-child {
-		width: 75px;
-		height: 75px;
-		position: relative;
-		/*top: 475px;*/
-		border: 1px solid rgba(247,99,114,0.3);
+	.commodity-left .imgItem {
+		width: 90px;
+		height: 90px;
+		display: inline-block;
+		margin-right: 10px;
 		padding: 5px;
-		margin-right: 20px;
+		border: 1px solid #ccc;
 	}
-	.commodity-left ul > * > img:first-child:hover {
-		border: 1px solid #f76372;
+	.imgItem img {
+		width: 100%;
+		height: 100%;
 	}
-	.commodity-left ul > * > img:first-child:hover + img {
-		z-index: 20;
+	.bigImg {
+		width: 100%;
+		height: calc(100% - 142px);
+		margin-top: 10px;
 	}
+	.active {
+		border: 1px solid #f76372 !important;
+	}
+
 	.commodity-wrapper > .commodity-right {
 		width: 688px;
 		padding: 25px;

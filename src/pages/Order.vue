@@ -2,221 +2,268 @@
 	<div class="order">
 		<div class="wrapper order-wrapper">
 			<el-table
-		    ref="multipleTable"
-		    :data="msg"
-		    tooltip-effect="dark"
-		    style="width: 100%">
-		    <el-table-column
-		      label="商品信息"
-		      width="399">
-		      <template slot-scope='{row}'>
-		      	<img :src="row.form.src">
-		      	<span style='position: relative; bottom: 40px;'>{{row.form.name}}</span>
-		      </template>
-		    </el-table-column>
-		    <el-table-column
-		      label="单价"
-		      width="200"
-		      align='center'>
-		      <template slot-scope='{row}'>
-		      	<span>￥{{row.form.pricel}}</span>
-		      </template>
-		    </el-table-column>
-		    <el-table-column
-		      label="数量"
-		      width="200"
-		      align='center'>
-		      <template slot-scope='{row}'>
-		      	{{row.form.number}}
-		      </template>
-		    </el-table-column>
-		    <el-table-column
-		      label="总计"
-		      width="200"
-		      align='center'>
-		      <template slot-scope='{row}'>
-		      	<div>￥{{row.form.number * row.form.pricel}}</div>
-		      </template>
-		    </el-table-column>
-		    <el-table-column
-		      label="操作"
-		      width='200'>
-		      <template slot-scope='{row}'>
-		      	<span @click='deletecommodity(row)'>删除</span><!-- 此处删除应传row.id -->
-		      	<span @click='show(row)'>查看详情</span>
-
-		      	<el-dialog title="订单详情" :visible.sync="row.visible">
-					  	<div class="order-receiver">
-					  		<span>收件人：</span>
-					  		<span>{{row.form.nickname}}</span>
-					  	</div>
-					  	<div class="order-telephone">
-					  		<span>联系电话：</span>
-					  		<span>{{row.form.telephone}}</span>
-					  	</div>
-					  	<div class="order-address">
-					  		<span>收货地址：</span>
-					  		<span>{{row.form.address}}</span>
-					  	</div>
-					  	<div class="order-commodity">
-					  		<div class="order-commoditytitle">
-									<div class="title-msg">商品信息</div>
-									<div class="title-price">单价</div>
-									<div class="title-number">数量</div>
-									<div class="title-total">总计</div>
-					  		</div>
-					  		<div class="order-commoditymsg">
-							  	<div class="order-img"><img :src="row.form.src" alt=""></div>
-							  	<div class="order-msg">{{row.form.name}}</div>
-							  	<div class="order-price">￥{{row.form.pricel}}</div>
-							  	<div class="order-number">{{row.form.number}}</div>
-							  	<div class="order-total">￥{{row.form.number * row.form.pricel}}</div>
-							  </div>
-					  	</div>
-						</el-dialog>
-		      </template>
-		    </el-table-column>
-		  </el-table>
+				ref="multipleTable"
+				:data="tableList"
+				tooltip-effect="dark"
+				empty-text='暂无订单'
+				style="width: 100%;"
+				>
+				<el-table-column
+					label="商品信息"
+					width="399">
+					<template slot-scope='{row}'>
+						<img :src="row.src" @click='viewComDetail(row)' style='cursor: pointer;'>
+						<span style='position: relative; bottom: 40px;'>{{row.commodityName}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column
+					label="单价"
+					width="200"
+					align='center'>
+					<template slot-scope='{row}'>
+						<span>￥{{row.pricel}}</span>
+					</template>
+				</el-table-column>
+				<el-table-column
+					label="数量"
+					width="200"
+					align='center'>
+					<template slot-scope='{row}'>
+						{{row.number}}
+					</template>
+				</el-table-column>
+				<el-table-column
+					label="总计"
+					width="200"
+					align='center'>
+					<template slot-scope='{row}'>
+						<div>￥{{row.number * row.pricel}}</div>
+					</template>
+				</el-table-column>
+				<el-table-column
+					label="操作"
+					width='200'>
+					<template slot-scope='{row}'>
+						<span @click='deleteCommodity(row)' style='cursor: pointer; color: red;'>删除</span>
+						<span @click='show(row)' style='cursor: pointer;'>查看详情</span>
+					</template>
+				</el-table-column>
+			</el-table>
 		</div>
 		
+		<el-dialog title="订单详情" :visible.sync="visible">
+			<div class='marginB10'>订单号：{{detail.orderId}}</div>
+			<div class='marginB10'>交易号：{{detail.dealId}}</div>
+			<div class='marginB10'>收件人：{{detail.name}}</div>
+			<div class='marginB10'>联系电话：{{detail.telephone}}</div>
+			<div class='marginB10'>收货地址：<span>{{detail.addressStr}}</span></div>
+
+			<div class="order-commodity">
+				<el-row>
+					<el-col :span='4' class='textCenter'>&nbsp;</el-col>
+					<el-col :span='5' class='textCenter'>商品名称</el-col>
+					<el-col :span='5' class='textCenter'>单价</el-col>
+					<el-col :span='5' class='textCenter'>数量</el-col>
+					<el-col :span='5' class='textCenter'>总计</el-col>
+				</el-row>
+
+				<el-row>
+					<el-col :span='4' class=''><img :src="detail.src" alt="" @click='viewComDetail(detail)' class='detailImg' title='点击查看商品详情'></el-col>
+					<el-col :span='5' class='textCenter detailItem'>{{detail.commodityName}}</el-col>
+					<el-col :span='5' class='textCenter detailItem'>￥{{detail.pricel}}</el-col>
+					<el-col :span='5' class='textCenter detailItem'>{{detail.number}}</el-col>
+					<el-col :span='5' class='textCenter detailItem'>￥{{detail.number * detail.pricel}}</el-col>
+				</el-row>
+			</div>
+		</el-dialog>
 	</div>
 </template>
 
 <script>
 import axios from '@/http/axios'
+import _ from 'lodash'
+import { mapState } from 'vuex'
+import cityCode from '../data/city.json'
+
 export default {
-	props:['usermsg'],
-	data(){
+	props: ['usermsg'],
+	data () {
 		return {
-			/*msg:[{
-				visible:false,
-				form:{
-					nickname:'刘浩',
-					telephone:'18454236834',
-					address:'江苏省苏州市昆山市巴城镇学院路999号美居客电商产业大楼',
-					id:'300',
-					number:'2',
-					src:'/static/love-1.jpg'
-				}
-			},{
-				visible:false,
-				form:{
-					nickname:'南宫',
-					telephone:'112356',
-					address:'浙江省杭州市滨江区',
-					id:'307',
-					number:'1',
-					src:'/static/love-8.jpg'
-				}
-			}],*/
-			msg: [],
+			cityCode: [],
+			tableList: [],
 			order: [],
-			commodity: []
+			commodity: [],
+			commodityIds: [],
+
+			// 详情
+			visible: false,
+			detail: {}
 		}
 	},
 	watch: {
-    '$parent.usermsg.form.username': function () {
-      if (this.$parent.usermsg.form.username == undefined) {
-      	this.$router.push('/')
-      }
-    }
-  },
-	created () {
-		this.findOrderByUsername()
+		'userMsg.username': function (val) {
+			if (!val) {
+				this.$router.push('/')
+			}
+		},
+		userMsg: async function (val) {
+			if (val) {
+				this.findTableData()
+			}
+		}
+	},
+	computed: {
+		...mapState({
+			userMsg: state => state.userMsg
+		})
+	},
+	async created () {
+		this.cityCode = JSON.parse(JSON.stringify(cityCode))
+		this.findTableData()
 	},
 	methods: {
-		findOrderByUsername () {
-			this.msg = []
-      this.order = []
-      this.commodity = []
-			axios.get('/order/findOrderByUsername?username=' + this.$route.query.username)
-			.then(({ data: results }) => {
-				this.$message.success('order查询成功')
-				this.order = results
-				// console.log(this.order)
+		// 查数据
+		async findTableData () {
+			await this.findOrderByUsername()
+			this.findCommodityByIds(this.commodityIds)
+		},
+		// 根据用户名查订单信息
+		async findOrderByUsername () {
+			if (!this.userMsg.username) {
+				return false
+			}
+
+			this.tableList = []
+			this.order = []
+			this.commodity = []
+			let params = {
+				username: this.userMsg.username
+			}
+			await axios.get('/order/findOrderByUsername', { params })
+			.then(res => {
+				if (!res.data.success) {
+					this.$message.error(res.data.desc)
+					return false
+				}
+				
+				this.order = res.data.data
 				let ids = this.order.map((item) => {
 					return item.id
 				})
-				this.findCommodityByIds(ids)
+				this.commodityIds = [...new Set(ids)]
 			})
 			.catch(() => {
 				this.$message.error('查询失败')
 			})
 		},
-		findCommodityByIds (ids) {
-			// console.log({ids})//{ids:['300','304','308']}
-			if (ids.length == 1) {
-				axios.get('/commodity/findCommodityById?id=' + ids[0])
-				.then(({ data: results }) => {
-					this.$message({
-						message: 'id查询成功',
-						type: 'success'
-					})
-					this.commodity = results
-					let obj = {
-						visible: false,
-						form: {
-							id: this.order[0].id,
-							nickname: this.order[0].nickname,
-							telephone: this.order[0].telephone,
-							address: this.order[0].address,
-							number: this.order[0].number,
-							src: this.commodity[0].src,
-							name: this.commodity[0].name,
-							pricel: this.commodity[0].pricel,
-						}
-					}
-					this.msg.push(obj)
+		// 查询商品信息
+		async findCommodityByIds (ids) {
+			if (!ids.length) {
+				return false
+			}
+			
+			let params
+			let res
+			if (ids.length === 1) {
+				params = { id: ids[0] }
+				// axios.get('/commodity/findCommodityById', { params })
+				res = await axios({
+					method: 'GET',
+					url: '/commodity/findCommodityById',
+					params
 				})
 			} else {
-				axios.post('/commodity/findCommodityByIds', { ids })
-				.then(({ data: results }) => {
-					this.$message({
-						message: 'ids查询成功',
-						type: 'success'
-					})
-					this.commodity = results
-
-					for(let i = 0; i < this.order.length; i++){
-						let obj = {
-							visible: false,
-							form: {
-								id: this.order[i].id,
-								nickname: this.order[i].nickname,
-								telephone: this.order[i].telephone,
-								address: this.order[i].address,
-								number: this.order[i].number,
-								src: this.commodity[i].src,
-								name: this.commodity[i].name,
-								pricel: this.commodity[i].pricel,
-							}
-						}
-						this.msg.push(obj)
-					}
-				})
-				.catch(() => {
-					this.$message.error('ids查询失败')
+				params = { ids: JSON.stringify(ids) }
+				res = await axios({
+					method: 'POST',
+					url: '/commodity/findCommodityByIds',
+					data: params
 				})
 			}
+
+			if (!res.data.success) {
+				this.$message.error(res.data.desc)
+				return false
+			}
+
+			this.commodity = res.data.data
+			this.generateTableData()
 		},
-		deletecommodity (row) {
+		// 处理列表数据
+		generateTableData () {
+			this.order.forEach(order => {
+				this.commodity.forEach(com => {
+					if (order.id === (com.id + '')) {
+						let obj = _.cloneDeep(order)
+						obj.src = com.src
+						obj.commodityName = com.name
+						obj.pricel = com.pricel
+						obj.address = JSON.parse(obj.address)
+						obj.addressStr = this.getCodeLabel(obj.address.addressCode).join('') + obj.address.addressDetail
+						this.tableList.push(obj)
+					}
+				})
+			})
+		},
+		// 获取地址码对应显示
+		getCodeLabel (codes) {
+			let arr = []
+			this.cityCode.forEach(prov => {
+				if (prov.value === codes[0]) {
+					arr.push(prov.label)
+					prov.children.forEach(city => {
+						if (city.value === codes[1]) {
+							arr.push(city.label)
+							city.children.forEach(area => {
+								if (area.value === codes[2]) {
+									arr.push(area.label)
+								}
+							})
+						}
+					})
+				}
+			})
+			return arr
+		},
+
+		// 删除订单
+		deleteCommodity (row) {
 			this.$confirm('确认删除商品？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-    		axios.get('/order/deleteOrder?username=' + this.$parent.usermsg.form.username + '&id=' + row.form.id + '')
-    		.then(() => {
-    			this.$message.success('删除成功!')
-          this.findOrderByUsername()
-    		})
-    		.catch(() => {
-    			this.$message.error('删除失败')
-    		})
-      })
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				let params = {
+					orderId: row.orderId,
+					dealId: row.dealId
+				}
+				axios.get('/order/deleteOrder', { params })
+				.then(res => {
+					if (!res.data.success) {
+						this.$message.error(res.data.desc)
+						return false
+					}
+					this.$message.success('删除成功')
+					this.findTableData()
+				})
+				.catch(() => {
+					this.$message.error('删除失败')
+				})
+			}).catch(() => {})
 		},
+		// 查看详情
 		show (row) {
-			row.visible = true
+			this.visible = true
+			this.detail = _.cloneDeep(row)
+		},
+		// 查看商品详情
+		viewComDetail (detail) {
+			this.$router.push({
+				path: '/plate/commodity',
+				query: {
+					id: detail.id
+				}
+			})
 		}
 	}
 }
@@ -235,50 +282,17 @@ export default {
 		font-size: 16px;
 		font-weight: normal;
 	}
-	.order-wrapper .el-table__body-wrapper tbody > * > td:last-child > div >span {
+
+	.order-commodity {
+		margin-top: 35px;
+	}
+
+	.detailImg {
+		width: 100px;
 		cursor: pointer;
 	}
-	.order-wrapper .el-table__body-wrapper tbody > * > td:last-child > div >span:first-child {
-		color: red;
-	}
-	.el-table__body-wrapper tbody > * > td:last-child > div .el-dialog__body > .order-receiver > span:first-child {
-		margin-right: 15px;
-	}
-	.el-dialog__body > * {
-		margin-bottom: 10px;
-	}
-	.el-dialog__body > .order-commodity {
-		margin: 35px 0 0;
-	} 
-	.order-commodity .order-commoditytitle > * {
-		float: left;
-		width: 150px;
-		text-align: center;
-	}
-	.order-commoditytitle > .title-msg {
-		width: 269px;
-		text-align: left;
-	}
-	.order-commodity > .order-commoditymsg > * {
-		float: left;
-		width: 150px;
-		text-align: center;
+	.detailItem {
 		height: 100px;
-		line-height: 100px;
-	}
-	.order-commoditymsg .order-img {
-		width: 100px;
-	}
-	.order-commoditymsg .order-msg {
-		width: 169px;
-		padding-left: 10px;
-		text-align: left;
-	} 
-
-	.order-commoditytitle::after,
-	.order-commoditymsg::after {
-		content: '';
-		display: block;
-		clear: both;
+		padding-top: 20px;
 	}
 </style>

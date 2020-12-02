@@ -67,6 +67,10 @@ export default {
 		this.maxWidth = this.$refs.dragDiv.clientWidth - this.$refs.moveDiv.clientWidth
 		document.getElementsByTagName('html')[0].addEventListener('mousemove', this.mouseMoveFn)
 		document.getElementsByTagName('html')[0].addEventListener('mouseup', this.moseUpFn)
+	},
+	destroyed () {
+		document.getElementsByTagName('html')[0].removeEventListener('mousemove', this.mouseMoveFn)
+		document.getElementsByTagName('html')[0].removeEventListener('mouseup', this.moseUpFn)
 	}
 }
 </script>
